@@ -12,13 +12,18 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Set up JDK 17
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           java-version: '17'
           distribution: 'temurin'
 
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
       - name: Build Release AAB
-        run: gradle bundleRelease --stacktrace
+        env:
+          GEMINI_API_KEY: "DUMMY_KEY_FOR_BUILD"
+        run: ./gradlew bundleRelease --stacktrace
 
       - name: Upload AAB Artifact
         uses: actions/upload-artifact@v4
