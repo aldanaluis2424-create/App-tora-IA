@@ -22,13 +22,15 @@ jobs:
         with:
           gradle-version: '8.5'
 
-      - name: Build Release AAB
+      - name: Generate Wrapper and Build AAB
         env:
           GEMINI_API_KEY: "DUMMY_KEY_FOR_BUILD"
-        run: gradle bundleRelease --stacktrace
+        run: |
+          gradle wrapper
+          ./gradlew bundleRelease --stacktrace
 
       - name: Upload AAB Artifact
         uses: actions/upload-artifact@v4
         with:
           name: app-release-aab
-          path: app/build/outputs/bundle/release/*.aab
+          path: '**/build/outputs/bundle/release/*.aab'
