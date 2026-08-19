@@ -1,0 +1,6 @@
+{
+  "name": "Torah IA",
+  "description": "Aplicación educativa premium para el estudio del Alefato Hebreo, Fiestas Judías, Calendario Hebreo y Traducción Inteligente con IA.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
