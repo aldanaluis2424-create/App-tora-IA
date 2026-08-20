@@ -8,32 +8,38 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Descargar codigo
+      - name: Descargar código fuente
         uses: actions/checkout@v4
 
       - name: Configurar Java 17
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           java-version: '17'
           distribution: 'temurin'
 
+      # Instala la herramienta Gradle 8.5 automáticamente en el servidor de GitHub
+      - name: Instalar y Configurar Gradle CLI
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.5'
+
       - name: Crear local.properties
         run: |
-          echo "sdk.dir=$ANDROID_SDK_ROOT" > local.properties
-          echo "GEMINI_API_KEY=DUMMY_KEY_FOR_BUILD" >> local.properties
+          echo "sdk.dir=$ANDROID_HOME" > local.properties
+          echo "GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}" >> local.properties
 
-      - name: Configurar Entorno Android
-        uses: android-actions/setup-android@v3
-
-      - name: Generar Wrapper y Compilar AAB
+      # Genera el wrapper dinámicamente en el servidor si no existe
+      - name: Generar Wrapper e Iniciar Compilación AAB
         run: |
-          gradle wrapper --gradle-version 8.2 --distribution-type bin
+          gradle wrapper --gradle-version 8.5
           chmod +x gradlew
           ./gradlew bundleRelease --stacktrace
 
-      - name: Subir Archivo AAB
+      - name: Subir Archivo AAB a Artefactos
         uses: actions/upload-artifact@v4
         with:
           name: app-release-aab
           path: '**/build/outputs/bundle/release/*.aab'
+          retention-days: 7
