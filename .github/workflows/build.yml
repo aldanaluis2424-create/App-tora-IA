@@ -27,22 +27,29 @@ jobs:
         with:
           gradle-version: '9.3.1'
 
-      - name: Configurar gradle.properties para compatibilidad de Compose
+      - name: Configurar gradle.properties para compatibilidad
         run: |
           echo "kotlin.compiler.suppressKotlinVersionCompatibilityCheck=true" >> gradle.properties
           echo "android.suppressUnsupportedCompileSdk=true" >> gradle.properties
 
-      - name: Crear local.properties
+      - name: Preparar Claves y Variables de Entorno (Con comillas y Fallback)
         run: |
+          API_KEY="${{ secrets.GEMINI_API_KEY }}"
+          if [ -z "$API_KEY" ]; then
+            API_KEY="DUMMY_KEY_FOR_BUILD"
+          fi
+          
+          # Escribir en local.properties
           echo "sdk.dir=$ANDROID_HOME" > local.properties
-          echo "GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}" >> local.properties
+          echo "GEMINI_API_KEY=\"$API_KEY\"" >> local.properties
+          
+          # Escribir en gradle.properties
+          echo "GEMINI_API_KEY=\"$API_KEY\"" >> gradle.properties
+          
+          # Escribir en .env y .env.example
+          echo "GEMINI_API_KEY=\"$API_KEY\"" > .env
+          echo "GEMINI_API_KEY=\"$API_KEY\"" > .env.example
 
-      - name: Crear archivos de entorno (.env y .env.example)
-        run: |
-          echo "GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}" > .env
-          echo "GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}" > .env.example
-
-      # Genera google-services.json con el package_name exacto de tu App (com.aistudio.torahia.kxpq)
       - name: Generar google-services.json coincidiendo con el paquete de la App
         run: |
           if [ -n "${{ secrets.GOOGLE_SERVICES_JSON }}" ]; then
