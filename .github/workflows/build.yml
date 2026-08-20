@@ -27,6 +27,15 @@ jobs:
         with:
           gradle-version: '9.3.1'
 
+      # Congela y reutiliza siempre LA MISMA llave de firma en todas las compilaciones
+      - name: Cachear Keystore de Firma Permanente
+        uses: actions/cache@v4
+        with:
+          path: |
+            my-upload-key.jks
+            app/my-upload-key.jks
+          key: permanent-release-keystore-v3
+
       - name: Configurar gradle.properties para compatibilidad
         run: |
           echo "kotlin.compiler.suppressKotlinVersionCompatibilityCheck=true" >> gradle.properties
@@ -57,7 +66,7 @@ jobs:
             echo '{"project_info":{"project_number":"123456789012","project_id":"app-tora-ia","storage_bucket":"app-tora-ia.appspot.com"},"client":[{"client_info":{"mobilesdk_app_id":"1:123456789012:android:1234567890abcdef","android_client_info":{"package_name":"com.ToraIA"}},"api_key":[{"current_key":"AIzaSyDummyKeyForBuild123456789"}]}],"configuration_version":"1"}' > app/google-services.json
           fi
 
-      - name: Preparar Keystore de Firma (my-upload-key.jks)
+      - name: Preparar Keystore de Firma Único y Permanente
         run: |
           STORE_PASS="${{ secrets.KEYSTORE_PASSWORD }}"
           ALIAS="${{ secrets.KEY_ALIAS }}"
@@ -69,7 +78,7 @@ jobs:
           
           if [ -n "${{ secrets.KEYSTORE_BASE64 }}" ]; then
             echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > "$GITHUB_WORKSPACE/my-upload-key.jks"
-          else
+          elif [ ! -f "$GITHUB_WORKSPACE/my-upload-key.jks" ]; then
             keytool -genkeypair -alias "$ALIAS" -keyalg RSA -keysize 2048 -validity 10000 -keystore "$GITHUB_WORKSPACE/my-upload-key.jks" -storepass "$STORE_PASS" -keypass "$KEY_PASS" -dname "CN=Android,OU=Android,O=Android,L=Android,ST=Android,C=US"
           fi
           cp "$GITHUB_WORKSPACE/my-upload-key.jks" app/my-upload-key.jks
