@@ -39,14 +39,9 @@ jobs:
             API_KEY="DUMMY_KEY_FOR_BUILD"
           fi
           
-          # Escribir en local.properties
           echo "sdk.dir=$ANDROID_HOME" > local.properties
           echo "GEMINI_API_KEY=\"$API_KEY\"" >> local.properties
-          
-          # Escribir en gradle.properties
           echo "GEMINI_API_KEY=\"$API_KEY\"" >> gradle.properties
-          
-          # Escribir en .env y .env.example
           echo "GEMINI_API_KEY=\"$API_KEY\"" > .env
           echo "GEMINI_API_KEY=\"$API_KEY\"" > .env.example
 
@@ -58,7 +53,7 @@ jobs:
             echo '{"project_info":{"project_number":"123456789012","project_id":"app-tora-ia","storage_bucket":"app-tora-ia.appspot.com"},"client":[{"client_info":{"mobilesdk_app_id":"1:123456789012:android:1234567890abcdef","android_client_info":{"package_name":"com.aistudio.torahia.kxpq"}},"api_key":[{"current_key":"AIzaSyDummyKeyForBuild123456789"}]}],"configuration_version":"1"}' > app/google-services.json
           fi
 
-      - name: Preparar Keystore y Contraseñas de Firma (my-upload-key.jks)
+      - name: Preparar Keystore de Firma (my-upload-key.jks)
         run: |
           STORE_PASS="${{ secrets.KEYSTORE_PASSWORD }}"
           ALIAS="${{ secrets.KEY_ALIAS }}"
@@ -68,27 +63,26 @@ jobs:
           if [ -z "$ALIAS" ]; then ALIAS="my-key-alias"; fi
           if [ -z "$KEY_PASS" ]; then KEY_PASS="android"; fi
           
-          # Inyectar contraseñas en gradle.properties y local.properties
-          echo "KEYSTORE_PASSWORD=$STORE_PASS" >> gradle.properties
-          echo "KEY_ALIAS=$ALIAS" >> gradle.properties
-          echo "KEY_PASSWORD=$KEY_PASS" >> gradle.properties
-          echo "KEYSTORE_PASSWORD=$STORE_PASS" >> local.properties
-          echo "KEY_ALIAS=$ALIAS" >> local.properties
-          echo "KEY_PASSWORD=$KEY_PASS" >> local.properties
-          
           if [ -n "${{ secrets.KEYSTORE_BASE64 }}" ]; then
-            echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > my-upload-key.jks
+            echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > "$GITHUB_WORKSPACE/my-upload-key.jks"
           else
-            keytool -genkeypair -alias "$ALIAS" -keyalg RSA -keysize 2048 -validity 10000 -keystore my-upload-key.jks -storepass "$STORE_PASS" -keypass "$KEY_PASS" -dname "CN=Android,OU=Android,O=Android,L=Android,ST=Android,C=US"
+            keytool -genkeypair -alias "$ALIAS" -keyalg RSA -keysize 2048 -validity 10000 -keystore "$GITHUB_WORKSPACE/my-upload-key.jks" -storepass "$STORE_PASS" -keypass "$KEY_PASS" -dname "CN=Android,OU=Android,O=Android,L=Android,ST=Android,C=US"
           fi
-          cp my-upload-key.jks app/my-upload-key.jks
+          cp "$GITHUB_WORKSPACE/my-upload-key.jks" app/my-upload-key.jks
 
-      - name: Compilar AAB de Release Directamente
+      - name: Compilar y Firmar AAB de Release Directamente
         env:
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD || 'android' }}
           KEY_ALIAS: ${{ secrets.KEY_ALIAS || 'my-key-alias' }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD || 'android' }}
-        run: gradle bundleRelease -PKEYSTORE_PASSWORD="${KEYSTORE_PASSWORD}" -PKEY_ALIAS="${KEY_ALIAS}" -PKEY_PASSWORD="${KEY_PASSWORD}" --stacktrace --console=plain
+        run: |
+          STORE_PATH="$GITHUB_WORKSPACE/my-upload-key.jks"
+          gradle bundleRelease \
+            -Pandroid.injected.signing.store.file="$STORE_PATH" \
+            -Pandroid.injected.signing.store.password="${KEYSTORE_PASSWORD}" \
+            -Pandroid.injected.signing.key.alias="${KEY_ALIAS}" \
+            -Pandroid.injected.signing.key.password="${KEY_PASSWORD}" \
+            --stacktrace --console=plain
 
       - name: Subir Archivo AAB a Artefactos
         uses: actions/upload-artifact@v4
