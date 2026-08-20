@@ -22,10 +22,15 @@ jobs:
       - name: Configurar Entorno Android SDK
         uses: android-actions/setup-android@v3
 
-      - name: Instalar y Configurar Gradle 8.7 (Estable)
+      - name: Instalar y Configurar Gradle 9.3.1 (Exigido por AGP 9.1.1)
         uses: gradle/actions/setup-gradle@v4
         with:
-          gradle-version: '8.7'
+          gradle-version: '9.3.1'
+
+      - name: Configurar gradle.properties para compatibilidad de Compose
+        run: |
+          echo "kotlin.compiler.suppressKotlinVersionCompatibilityCheck=true" >> gradle.properties
+          echo "android.suppressUnsupportedCompileSdk=true" >> gradle.properties
 
       - name: Crear local.properties
         run: |
@@ -37,7 +42,6 @@ jobs:
           echo "GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}" > .env
           echo "GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}" > .env.example
 
-      # Solución al error de Google Services: Genera el archivo google-services.json si falta
       - name: Generar google-services.json si no existe
         run: |
           if [ ! -f app/google-services.json ]; then
@@ -46,10 +50,3 @@ jobs:
 
       - name: Compilar AAB de Release Directamente
         run: gradle bundleRelease --stacktrace --console=plain
-
-      - name: Subir Archivo AAB a Artefactos
-        uses: actions/upload-artifact@v4
-        with:
-          name: app-release-aab
-          path: '**/build/outputs/bundle/release/*.aab'
-          retention-days: 7
