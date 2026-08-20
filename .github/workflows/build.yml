@@ -22,14 +22,19 @@ jobs:
       - name: Configurar Entorno Android SDK
         uses: android-actions/setup-android@v3
 
-      # Auto-detecta la versión exacta de Gradle desde tu archivo gradle-wrapper.properties
-      - name: Instalar y Configurar Gradle (Auto-detectado)
+      - name: Instalar y Configurar Gradle
         uses: gradle/actions/setup-gradle@v4
 
       - name: Crear local.properties
         run: |
           echo "sdk.dir=$ANDROID_HOME" > local.properties
           echo "GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}" >> local.properties
+
+      # Solución al error: Crea .env y .env.example automáticamente durante el build
+      - name: Crear archivos de entorno (.env y .env.example)
+        run: |
+          echo "GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}" > .env
+          echo "GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}" > .env.example
 
       - name: Compilar AAB de Release Directamente
         run: gradle bundleRelease --stacktrace
