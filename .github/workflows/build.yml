@@ -45,7 +45,11 @@ jobs:
           echo "GEMINI_API_KEY=\"$API_KEY\"" > .env
           echo "GEMINI_API_KEY=\"$API_KEY\"" > .env.example
 
-      # Genera google-services.json coincidiendo con el ID registrado en Play Console: com.ToraIA
+      # Remueve la etiqueta 'package' obsoleta en AndroidManifest.xml como lo exige Android 9+
+      - name: Limpiar atributo package obsoleto en AndroidManifest.xml
+        run: |
+          sed -i 's/package="[^"]*"//g' app/src/main/AndroidManifest.xml
+
       - name: Generar google-services.json coincidiendo con com.ToraIA
         run: |
           if [ -n "${{ secrets.GOOGLE_SERVICES_JSON }}" ]; then
@@ -71,7 +75,6 @@ jobs:
           fi
           cp "$GITHUB_WORKSPACE/my-upload-key.jks" app/my-upload-key.jks
 
-      # Inyecta com.ToraIA como applicationId para Google Play Console
       - name: Compilar y Firmar AAB con applicationId com.ToraIA
         env:
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD || 'android' }}
