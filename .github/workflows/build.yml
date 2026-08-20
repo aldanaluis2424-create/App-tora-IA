@@ -13,19 +13,18 @@ jobs:
       - name: Descargar código fuente
         uses: actions/checkout@v4
 
-      - name: Configurar Java 21
+      - name: Configurar Java 17
         uses: actions/setup-java@v5
         with:
-          java-version: '21'
+          java-version: '17'
           distribution: 'temurin'
 
       - name: Configurar Entorno Android SDK
         uses: android-actions/setup-android@v3
 
-      - name: Instalar y Configurar Gradle CLI 9.3.1
+      # Auto-detecta la versión exacta de Gradle desde tu archivo gradle-wrapper.properties
+      - name: Instalar y Configurar Gradle (Auto-detectado)
         uses: gradle/actions/setup-gradle@v4
-        with:
-          gradle-version: '9.3.1'
 
       - name: Crear local.properties
         run: |
