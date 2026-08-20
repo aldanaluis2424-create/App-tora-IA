@@ -32,7 +32,7 @@ jobs:
           echo "kotlin.compiler.suppressKotlinVersionCompatibilityCheck=true" >> gradle.properties
           echo "android.suppressUnsupportedCompileSdk=true" >> gradle.properties
 
-      - name: Preparar Claves y Variables de Entorno (Con comillas y Fallback)
+      - name: Preparar Claves y Variables de Entorno
         run: |
           API_KEY="${{ secrets.GEMINI_API_KEY }}"
           if [ -z "$API_KEY" ]; then
@@ -57,6 +57,16 @@ jobs:
           elif [ ! -f app/google-services.json ]; then
             echo '{"project_info":{"project_number":"123456789012","project_id":"app-tora-ia","storage_bucket":"app-tora-ia.appspot.com"},"client":[{"client_info":{"mobilesdk_app_id":"1:123456789012:android:1234567890abcdef","android_client_info":{"package_name":"com.aistudio.torahia.kxpq"}},"api_key":[{"current_key":"AIzaSyDummyKeyForBuild123456789"}]}],"configuration_version":"1"}' > app/google-services.json
           fi
+
+      # Crea automáticamente el archivo my-upload-key.jks para que la firma no falle
+      - name: Preparar Keystore de Firma (my-upload-key.jks)
+        run: |
+          if [ -n "${{ secrets.KEYSTORE_BASE64 }}" ]; then
+            echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > my-upload-key.jks
+          else
+            keytool -genkeypair -alias "${{ secrets.KEY_ALIAS || 'my-key-alias' }}" -keyalg RSA -keysize 2048 -validity 10000 -keystore my-upload-key.jks -storepass "${{ secrets.KEYSTORE_PASSWORD || 'android' }}" -keypass "${{ secrets.KEY_PASSWORD || 'android' }}" -dname "CN=Android,OU=Android,O=Android,L=Android,ST=Android,C=US"
+          fi
+          cp my-upload-key.jks app/my-upload-key.jks
 
       - name: Compilar AAB de Release Directamente
         run: gradle bundleRelease --stacktrace --console=plain
