@@ -45,7 +45,6 @@ jobs:
           echo "GEMINI_API_KEY=\"$API_KEY\"" > .env
           echo "GEMINI_API_KEY=\"$API_KEY\"" > .env.example
 
-      # Remueve la etiqueta 'package' obsoleta en AndroidManifest.xml como lo exige Android 9+
       - name: Limpiar atributo package obsoleto en AndroidManifest.xml
         run: |
           sed -i 's/package="[^"]*"//g' app/src/main/AndroidManifest.xml
@@ -75,7 +74,7 @@ jobs:
           fi
           cp "$GITHUB_WORKSPACE/my-upload-key.jks" app/my-upload-key.jks
 
-      - name: Compilar y Firmar AAB con applicationId com.ToraIA
+      - name: Compilar y Firmar AAB con versionCode e id dinámicos
         env:
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD || 'android' }}
           KEY_ALIAS: ${{ secrets.KEY_ALIAS || 'my-key-alias' }}
@@ -84,6 +83,7 @@ jobs:
           STORE_PATH="$GITHUB_WORKSPACE/my-upload-key.jks"
           gradle bundleRelease \
             -Pandroid.injected.application.id="com.ToraIA" \
+            -Pandroid.injected.version.code="${{ github.run_number }}" \
             -Pandroid.injected.signing.store.file="$STORE_PATH" \
             -Pandroid.injected.signing.store.password="${KEYSTORE_PASSWORD}" \
             -Pandroid.injected.signing.key.alias="${KEY_ALIAS}" \
