@@ -19,7 +19,9 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      # Instala la herramienta Gradle 8.5 automáticamente en el servidor de GitHub
+      - name: Configurar Entorno Android SDK
+        uses: android-actions/setup-android@v3
+
       - name: Instalar y Configurar Gradle CLI
         uses: gradle/actions/setup-gradle@v4
         with:
@@ -30,12 +32,8 @@ jobs:
           echo "sdk.dir=$ANDROID_HOME" > local.properties
           echo "GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}" >> local.properties
 
-      # Genera el wrapper dinámicamente en el servidor si no existe
-      - name: Generar Wrapper e Iniciar Compilación AAB
-        run: |
-          gradle wrapper --gradle-version 8.5
-          chmod +x gradlew
-          ./gradlew bundleRelease --stacktrace
+      - name: Compilar AAB de Release Directamente
+        run: gradle bundleRelease --stacktrace
 
       - name: Subir Archivo AAB a Artefactos
         uses: actions/upload-artifact@v4
