@@ -27,15 +27,6 @@ jobs:
         with:
           gradle-version: '9.3.1'
 
-      # Congela y reutiliza siempre LA MISMA llave de firma en todas las compilaciones
-      - name: Cachear Keystore de Firma Permanente
-        uses: actions/cache@v4
-        with:
-          path: |
-            my-upload-key.jks
-            app/my-upload-key.jks
-          key: permanent-release-keystore-v3
-
       - name: Configurar gradle.properties para compatibilidad
         run: |
           echo "kotlin.compiler.suppressKotlinVersionCompatibilityCheck=true" >> gradle.properties
@@ -82,6 +73,11 @@ jobs:
             keytool -genkeypair -alias "$ALIAS" -keyalg RSA -keysize 2048 -validity 10000 -keystore "$GITHUB_WORKSPACE/my-upload-key.jks" -storepass "$STORE_PASS" -keypass "$KEY_PASS" -dname "CN=Android,OU=Android,O=Android,L=Android,ST=Android,C=US"
           fi
           cp "$GITHUB_WORKSPACE/my-upload-key.jks" app/my-upload-key.jks
+          
+          echo "=== TU KEYSTORE BASE64 PARA GUARDAR EN GITHUB SECRETS ==="
+          base64 -w 0 "$GITHUB_WORKSPACE/my-upload-key.jks"
+          echo ""
+          echo "=========================================================="
 
       - name: Compilar y Firmar AAB con versionCode e id dinámicos
         env:
