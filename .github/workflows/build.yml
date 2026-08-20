@@ -45,12 +45,13 @@ jobs:
           echo "GEMINI_API_KEY=\"$API_KEY\"" > .env
           echo "GEMINI_API_KEY=\"$API_KEY\"" > .env.example
 
-      - name: Generar google-services.json coincidiendo con el paquete de la App
+      # Genera google-services.json coincidiendo con el ID registrado en Play Console: com.ToraIA
+      - name: Generar google-services.json coincidiendo con com.ToraIA
         run: |
           if [ -n "${{ secrets.GOOGLE_SERVICES_JSON }}" ]; then
             echo "${{ secrets.GOOGLE_SERVICES_JSON }}" > app/google-services.json
           elif [ ! -f app/google-services.json ]; then
-            echo '{"project_info":{"project_number":"123456789012","project_id":"app-tora-ia","storage_bucket":"app-tora-ia.appspot.com"},"client":[{"client_info":{"mobilesdk_app_id":"1:123456789012:android:1234567890abcdef","android_client_info":{"package_name":"com.aistudio.torahia.kxpq"}},"api_key":[{"current_key":"AIzaSyDummyKeyForBuild123456789"}]}],"configuration_version":"1"}' > app/google-services.json
+            echo '{"project_info":{"project_number":"123456789012","project_id":"app-tora-ia","storage_bucket":"app-tora-ia.appspot.com"},"client":[{"client_info":{"mobilesdk_app_id":"1:123456789012:android:1234567890abcdef","android_client_info":{"package_name":"com.ToraIA"}},"api_key":[{"current_key":"AIzaSyDummyKeyForBuild123456789"}]}],"configuration_version":"1"}' > app/google-services.json
           fi
 
       - name: Preparar Keystore de Firma (my-upload-key.jks)
@@ -70,7 +71,8 @@ jobs:
           fi
           cp "$GITHUB_WORKSPACE/my-upload-key.jks" app/my-upload-key.jks
 
-      - name: Compilar y Firmar AAB de Release Directamente
+      # Inyecta com.ToraIA como applicationId para Google Play Console
+      - name: Compilar y Firmar AAB con applicationId com.ToraIA
         env:
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD || 'android' }}
           KEY_ALIAS: ${{ secrets.KEY_ALIAS || 'my-key-alias' }}
@@ -78,6 +80,7 @@ jobs:
         run: |
           STORE_PATH="$GITHUB_WORKSPACE/my-upload-key.jks"
           gradle bundleRelease \
+            -Pandroid.injected.application.id="com.ToraIA" \
             -Pandroid.injected.signing.store.file="$STORE_PATH" \
             -Pandroid.injected.signing.store.password="${KEYSTORE_PASSWORD}" \
             -Pandroid.injected.signing.key.alias="${KEY_ALIAS}" \
