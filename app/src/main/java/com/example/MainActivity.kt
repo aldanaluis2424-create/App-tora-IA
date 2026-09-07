@@ -1,6 +1,10 @@
 package com.example
 
+import android.content.ClipboardManager
+import android.content.Context
+import android.content.Intent
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -10,6 +14,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -29,7 +35,15 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            TorahIaTheme {
+            val readerTheme by viewModel.readerTheme.collectAsState()
+            val fontFamilyName by viewModel.fontFamily.collectAsState()
+            val fontSizeSp by viewModel.fontSizeSp.collectAsState()
+
+            TorahIaTheme(
+                readerTheme = readerTheme,
+                fontFamilyName = fontFamilyName,
+                fontSizeSp = fontSizeSp
+            ) {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background

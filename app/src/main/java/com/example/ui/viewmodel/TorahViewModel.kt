@@ -25,12 +25,26 @@ sealed class TranslationUiState {
 
 class TorahViewModel(application: Application) : AndroidViewModel(application) {
 
+    private val apiKeyManager = com.example.data.local.ApiKeyManager(application)
     private val repository: TorahRepository
 
     init {
         val database = AppDatabase.getDatabase(application)
-        repository = TorahRepository(database.torahDao())
+        repository = TorahRepository(
+            torahDao = database.torahDao(),
+            apiKeyManager = apiKeyManager
+        )
     }
+
+    private val _customApiKey = MutableStateFlow(apiKeyManager.getCustomApiKey())
+    val customApiKey: StateFlow<String> = _customApiKey.asStateFlow()
+
+    fun saveCustomApiKey(key: String) {
+        apiKeyManager.setCustomApiKey(key)
+        _customApiKey.value = key.trim()
+    }
+
+    fun hasGeminiKey(): Boolean = apiKeyManager.hasKey()
 
     val letters: List<HebrewLetter> = repository.letters
     val feasts: List<JewishFeast> = repository.feasts
@@ -56,6 +70,11 @@ class TorahViewModel(application: Application) : AndroidViewModel(application) {
     fun setFontSize(size: Float) { _fontSizeSp.value = size }
     fun setFontFamily(family: String) { _fontFamily.value = family }
     fun setReaderTheme(theme: String) { _readerTheme.value = theme }
+    fun resetReaderSettings() {
+        _fontSizeSp.value = 16f
+        _fontFamily.value = "SansSerif"
+        _readerTheme.value = "Light"
+    }
 
     // AI Contextual Study Chat
     private val _studyChatHistory = MutableStateFlow<List<StudyChatMessage>>(emptyList())
@@ -202,13 +221,33 @@ class TorahViewModel(application: Application) : AndroidViewModel(application) {
     fun addNote(topicId: String, topicTitle: String, category: String, content: String) {
         if (content.isBlank()) return
         viewModelScope.launch {
-            repository.addNote(topicId, topicTitle, category, content)
+            repository.addNote(topicId, topicTitle, category, content.trim())
+        }
+    }
+
+    fun updateNote(note: UserNoteEntity) {
+        viewModelScope.launch {
+            repository.saveNoteEntity(note)
+        }
+    }
+
+    fun updateNoteContent(noteId: Long, newContent: String, topicTitle: String? = null, category: String? = null, topicId: String? = null) {
+        if (newContent.isBlank()) return
+        viewModelScope.launch {
+            repository.updateNote(noteId, newContent.trim(), topicTitle, category, topicId)
         }
     }
 
     fun deleteNote(noteId: Long) {
         viewModelScope.launch {
             repository.deleteNote(noteId)
+        }
+    }
+
+    fun deleteNotes(noteIds: Collection<Long>) {
+        if (noteIds.isEmpty()) return
+        viewModelScope.launch {
+            repository.deleteNotes(noteIds.toList())
         }
     }
 
@@ -228,6 +267,99 @@ class TorahViewModel(application: Application) : AndroidViewModel(application) {
 
     fun getMonth(monthId: String): HebrewMonth? {
         return repository.getMonthById(monthId)
+    }
+
+    private val _favoritesSelectedTab = MutableStateFlow<Int>(0)
+    val favoritesSelectedTab: StateFlow<Int> = _favoritesSelectedTab.asStateFlow()
+
+    private val _pendingNoteContentToCreate = MutableStateFlow<String?>(null)
+    val pendingNoteContentToCreate: StateFlow<String?> = _pendingNoteContentToCreate.asStateFlow()
+
+    fun setFavoritesSelectedTab(tabIndex: Int) {
+        _favoritesSelectedTab.value = tabIndex
+    }
+
+    fun openNotesModule(pendingText: String? = null) {
+        _favoritesSelectedTab.value = 1
+        if (!pendingText.isNullOrBlank()) {
+            _pendingNoteContentToCreate.value = pendingText.trim()
+        }
+    }
+
+    fun clearPendingNoteContent() {
+        _pendingNoteContentToCreate.value = null
+    }
+
+    // HEBCAL INTERACTIVE API STATE
+    private val _todayHebcalDate = MutableStateFlow<com.example.data.remote.HebcalDateResult?>(null)
+    val todayHebcalDate: StateFlow<com.example.data.remote.HebcalDateResult?> = _todayHebcalDate.asStateFlow()
+
+    private val _convertedHebcalDate = MutableStateFlow<com.example.data.remote.HebcalDateResult?>(null)
+    val convertedHebcalDate: StateFlow<com.example.data.remote.HebcalDateResult?> = _convertedHebcalDate.asStateFlow()
+
+    private val _isConvertingHebcal = MutableStateFlow(false)
+    val isConvertingHebcal: StateFlow<Boolean> = _isConvertingHebcal.asStateFlow()
+
+    init {
+        loadTodayHebcalDate()
+    }
+
+    fun loadTodayHebcalDate() {
+        viewModelScope.launch {
+            try {
+                val res = repository.getTodayHebrewDate()
+                _todayHebcalDate.value = res
+                if (_convertedHebcalDate.value == null) {
+                    _convertedHebcalDate.value = res
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
+
+    fun convertGregorianDate(year: Int, month: Int, day: Int) {
+        viewModelScope.launch {
+            _isConvertingHebcal.value = true
+            try {
+                val res = repository.convertGregorianToHebrew(year, month, day)
+                _convertedHebcalDate.value = res
+            } catch (e: Exception) {
+                e.printStackTrace()
+            } finally {
+                _isConvertingHebcal.value = false
+            }
+        }
+    }
+
+    // REAL-TIME LOCAL GEMATRIA STATE (JS STANDARD FUNCTION)
+    private val _liveGematriaText = MutableStateFlow("שָׁלוֹם")
+    val liveGematriaText: StateFlow<String> = _liveGematriaText.asStateFlow()
+
+    private val _liveGematriaSum = MutableStateFlow(com.example.data.util.GematriaEngine.calcularGematriaEstandar("שָׁלוֹם"))
+    val liveGematriaSum: StateFlow<Int> = _liveGematriaSum.asStateFlow()
+
+    private val _liveGematriaBreakdown = MutableStateFlow(com.example.data.util.GematriaEngine.obtenerDesglose("שָׁלוֹם"))
+    val liveGematriaBreakdown: StateFlow<List<LetterBreakdown>> = _liveGematriaBreakdown.asStateFlow()
+
+    fun updateLiveGematriaText(text: String) {
+        _liveGematriaText.value = text
+        val sum = com.example.data.util.GematriaEngine.calcularGematriaEstandar(text)
+        _liveGematriaSum.value = sum
+        _liveGematriaBreakdown.value = com.example.data.util.GematriaEngine.obtenerDesglose(text)
+    }
+
+    fun appendHebrewLetterToLive(letterChar: Char) {
+        val updated = _liveGematriaText.value + letterChar
+        updateLiveGematriaText(updated)
+    }
+
+    fun interpretGematriaWithPaRDeS(hebrewText: String, gematriaVal: Int? = null) {
+        val textToAnalyze = hebrewText.ifBlank { _liveGematriaText.value }
+        if (textToAnalyze.isBlank()) return
+        val calculatedSum = gematriaVal ?: com.example.data.util.GematriaEngine.calcularGematriaEstandar(textToAnalyze)
+        _translationQuery.value = textToAnalyze
+        performTranslation("$textToAnalyze (Guematría estándar calculada: $calculatedSum)")
     }
 
     fun getBibleBook(bookId: String): BibleBook? {

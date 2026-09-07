@@ -1,6 +1,8 @@
 package com.example.ui.screens
 
 import androidx.compose.animation.*
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -19,7 +21,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -28,7 +30,6 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -45,13 +46,42 @@ fun HomeScreen(
 ) {
     val wordOfTheDay = viewModel.wordOfTheDay
 
-    LazyColumn(
+    Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background),
-        contentPadding = PaddingValues(16.dp),
-        verticalArrangement = Arrangement.spacedBy(20.dp)
+            .background(
+                Brush.verticalGradient(
+                    listOf(
+                        Color(0xFF140F08),
+                        Color(0xFF1F150B),
+                        Color(0xFF140F08)
+                    )
+                )
+            )
     ) {
+        // Fondo decorativo con puntos estelares dorados tenues
+        Canvas(modifier = Modifier.fillMaxSize()) {
+            val starColor = Color(0xFFFFE8A3).copy(alpha = 0.35f)
+            val stars = listOf(
+                Offset(size.width * 0.15f, size.height * 0.08f),
+                Offset(size.width * 0.85f, size.height * 0.12f),
+                Offset(size.width * 0.70f, size.height * 0.28f),
+                Offset(size.width * 0.25f, size.height * 0.45f),
+                Offset(size.width * 0.90f, size.height * 0.55f),
+                Offset(size.width * 0.10f, size.height * 0.75f),
+                Offset(size.width * 0.80f, size.height * 0.88f),
+                Offset(size.width * 0.40f, size.height * 0.92f)
+            )
+            stars.forEach { pos ->
+                drawCircle(starColor, 2f, pos)
+            }
+        }
+
+        LazyColumn(
+            modifier = Modifier.fillMaxSize(),
+            contentPadding = PaddingValues(top = 16.dp, bottom = 100.dp, start = 14.dp, end = 14.dp),
+            verticalArrangement = Arrangement.spacedBy(18.dp)
+        ) {
             // Hero Banner Section
             item {
                 HeroBannerCard()
@@ -69,127 +99,134 @@ fun HomeScreen(
                 )
             }
 
-            // Section Header
+            // Section Header: "Módulos Principales" estilo Dorado Serif
             item {
-                PaddingWrapper {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 4.dp, vertical = 2.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
                     Text(
                         text = "Módulos Principales",
-                        fontSize = 20.sp,
+                        fontSize = 22.sp,
                         fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onBackground
+                        color = Color(0xFFE8CA82),
+                        fontFamily = FontFamily.Serif,
+                        letterSpacing = 0.5.sp
                     )
                 }
             }
 
-            // 4 Primary Module Cards
+            // 4 Primary Module Cards con diseño iOS Premium (idéntico a la imagen 1)
             item {
-                PaddingWrapper {
-                    Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                        // Module 1: Alefato Hebreo
-                        ModuleCard(
-                            title = "1. Alefato Hebreo",
-                            subtitle = "22 Letras Sagradas, Guematría y Pardes",
-                            description = "Estudio detallado de cada letra: pictograma ancestral, historia, valor numérico, comentarios de Rashi y revelación mística.",
-                            imageResId = R.drawable.img_alefato_banner_1785859989840,
-                            icon = Icons.AutoMirrored.Filled.MenuBook,
-                            accentColor = Color(0xFF9E721D),
-                            testTag = "module_alefato",
-                            onClick = { onNavigate(Screen.AlefatoList.route) }
-                        )
+                Column(verticalArrangement = Arrangement.spacedBy(18.dp)) {
+                    // Module 1: Alefato Hebreo
+                    IosMainModuleCard(
+                        pillNumber = "1. Alefato Hebreo",
+                        title = "22 Letras Sagradas, Guematria y Pardes",
+                        description = "Estudio detallado de cada letra, pictograma ancestral, historia, valor numérico, comentarios de Rashi y revelación mística.",
+                        imageResId = R.drawable.img_alefato_banner_1785859989840,
+                        pillBgColor = Color(0xFF4A3416),
+                        testTag = "module_alefato",
+                        onClick = { onNavigate(Screen.AlefatoList.route) }
+                    )
 
-                        // Module 2: Fiestas Judías
-                        ModuleCard(
-                            title = "2. Fiestas Judías",
-                            subtitle = "Mitzvot, Costumbres y Significado Profundo",
-                            description = "Explora el Shabat, Pésaj, Shavuot, Rosh Hashaná, Yom Kipur, Sukkot y Janucá con cronología, comidas y exégesis.",
-                            imageResId = R.drawable.img_feasts_banner_1785860004945,
-                            icon = Icons.Default.Celebration,
-                            accentColor = Color(0xFF9B2226),
-                            testTag = "module_feasts",
-                            onClick = { onNavigate(Screen.FeastsList.route) }
-                        )
+                    // Module 2: Fiestas Judías
+                    IosMainModuleCard(
+                        pillNumber = "2. Fiestas Judías",
+                        title = "Mitzvot, Costumbres y Significado Profundo",
+                        description = "Explora el Shabat, Pésaj, Shavuot, Rosh Hashaná, Yom Kipur, Sukkot y Janucá con cronología, comidas y exégesis.",
+                        imageResId = R.drawable.img_feasts_banner_1785860004945,
+                        pillBgColor = Color(0xFF5E1B1B),
+                        testTag = "module_feasts",
+                        onClick = { onNavigate(Screen.FeastsList.route) }
+                    )
 
-                        // Module 3: Traductor Inteligente IA
-                        ModuleCard(
-                            title = "3. Traductor Inteligente IA",
-                            subtitle = "Análisis Teológico por Gemini API",
-                            description = "Escribe cualquier término hebreo o español para recibir traducción, desglose letra por letra, guematría y comentarios rabínicos.",
-                            imageResId = R.drawable.img_hero_banner_1785859976011,
-                            icon = Icons.Default.AutoAwesome,
-                            accentColor = Color(0xFF2D6A4F),
-                            testTag = "module_translator",
-                            onClick = { onNavigate(Screen.Translator.route) }
-                        )
+                    // Module 3: Calendario Hebreo
+                    IosMainModuleCard(
+                        pillNumber = "3. Calendario Hebreo",
+                        title = "Meses Bíblicos, Luni-Solar y Fases Lunares",
+                        description = "Descubre los 12 meses, Rosh Jódesh, cosechas en Israel, tribus correspondientes y orden cronológico divino.",
+                        imageResId = R.drawable.img_calendar_banner_1785860017335,
+                        pillBgColor = Color(0xFF1E2D3D),
+                        testTag = "module_calendar",
+                        onClick = { onNavigate(Screen.CalendarList.route) }
+                    )
 
-                        // Module 4: Calendario Hebreo
-                        ModuleCard(
-                            title = "4. Calendario Hebreo",
-                            subtitle = "Meses, Estaciones y Fases Lunares",
-                            description = "Calculador de años hebreos (5786/5785), detección de años bisiestos y estudio completo de los 13 meses bíblicos.",
-                            imageResId = R.drawable.img_calendar_banner_1785860017335,
-                            icon = Icons.Default.CalendarMonth,
-                            accentColor = Color(0xFF1E2A38),
-                            testTag = "module_calendar",
-                            onClick = { onNavigate(Screen.CalendarList.route) }
-                        )
-                    }
+                    // Module 4: Rabí
+                    IosMainModuleCard(
+                        pillNumber = "4. Módulo Rabí (Estudio & Guematría)",
+                        title = "Chat con Rabí, Traductor y Guematría",
+                        description = "Consulta a un sabio rabino con IA sobre Torá, Talmud, Zóhar, PaRDeS y análisis lingüístico con Sefaria y Wikipedia.",
+                        imageResId = R.drawable.img_hero_banner_1785859976011,
+                        pillBgColor = Color(0xFF1B3D2B),
+                        testTag = "module_translator",
+                        onClick = { onNavigate(Screen.Translator.route) }
+                    )
                 }
             }
 
             // Quick Access Chips
             item {
-                PaddingWrapper {
-                    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                        Text(
-                            text = "Acceso Rápido a Conceptos Clave",
-                            fontSize = 16.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onBackground
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(10.dp),
+                    modifier = Modifier.padding(top = 8.dp)
+                ) {
+                    Text(
+                        text = "Acceso Rápido a Conceptos Clave",
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFFDCC183),
+                        fontFamily = FontFamily.Serif
+                    )
+                    LazyRow(
+                        horizontalArrangement = Arrangement.spacedBy(10.dp),
+                        contentPadding = PaddingValues(vertical = 4.dp)
+                    ) {
+                        val quickItems = listOf(
+                            "Shalom (שָׁלוֹם)" to "shalom",
+                            "Emet (אֱמֶת)" to "emet",
+                            "Ahavah (אַהֲבָה)" to "ahavah",
+                            "Torah (תּוֹרָה)" to "torah",
+                            "Ruach (רוּחַ)" to "ruach",
+                            "Chesed (חֶסֶד)" to "chesed"
                         )
-                        LazyRow(
-                            horizontalArrangement = Arrangement.spacedBy(10.dp),
-                            contentPadding = PaddingValues(vertical = 4.dp)
-                        ) {
-                            val quickItems = listOf(
-                                "Shalom (שָׁלוֹם)" to "shalom",
-                                "Emet (אֱמֶת)" to "emet",
-                                "Ahavah (אַהֲבָה)" to "ahavah",
-                                "Torah (תּוֹרָה)" to "torah",
-                                "Ruach (רוּחַ)" to "ruach",
-                                "Chesed (חֶסֶד)" to "chesed"
-                            )
-                            items(quickItems) { (label, query) ->
-                                FilterChip(
-                                    selected = false,
-                                    onClick = {
-                                        viewModel.updateTranslationQuery(query)
-                                        viewModel.performTranslation(query)
-                                        onNavigate(Screen.Translator.route)
-                                    },
-                                    label = { Text(label, fontWeight = FontWeight.Medium) },
-                                    leadingIcon = {
-                                        Icon(
-                                            imageVector = Icons.Default.Search,
-                                            contentDescription = null,
-                                            modifier = Modifier.size(16.dp)
-                                        )
-                                    },
-                                    colors = FilterChipDefaults.filterChipColors(
-                                        containerColor = MaterialTheme.colorScheme.surfaceVariant
+                        items(quickItems) { (label, query) ->
+                            Surface(
+                                shape = RoundedCornerShape(14.dp),
+                                color = Color(0xFF281E12),
+                                border = BorderStroke(1.dp, Color(0xFF9E7B35)),
+                                modifier = Modifier.clickable {
+                                    viewModel.updateTranslationQuery(query)
+                                    viewModel.performTranslation(query)
+                                    onNavigate(Screen.Translator.route)
+                                }
+                            ) {
+                                Row(
+                                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Search,
+                                        contentDescription = null,
+                                        tint = Color(0xFFFFD978),
+                                        modifier = Modifier.size(14.dp)
                                     )
-                                )
+                                    Text(
+                                        text = label,
+                                        fontSize = 13.sp,
+                                        fontWeight = FontWeight.SemiBold,
+                                        color = Color(0xFFF7ECD5)
+                                    )
+                                }
                             }
                         }
                     }
                 }
             }
         }
-}
-
-@Composable
-private fun PaddingWrapper(content: @Composable () -> Unit) {
-    Box(modifier = Modifier.padding(horizontal = 16.dp)) {
-        content()
     }
 }
 
@@ -198,10 +235,10 @@ private fun HeroBannerCard() {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp)
             .height(180.dp),
-        shape = RoundedCornerShape(20.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+        shape = RoundedCornerShape(22.dp),
+        border = BorderStroke(1.dp, Color(0xFFC79E3E)),
+        elevation = CardDefaults.cardElevation(defaultElevation = 6.dp)
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
             Image(
@@ -217,7 +254,8 @@ private fun HeroBannerCard() {
                         Brush.verticalGradient(
                             colors = listOf(
                                 Color.Transparent,
-                                Color.Black.copy(alpha = 0.85f)
+                                Color(0x99140E04),
+                                Color(0xF2140E04)
                             )
                         )
                     )
@@ -244,7 +282,8 @@ private fun HeroBannerCard() {
                     text = "Descubre las Profundidades de la Torá",
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Color.White
+                    color = Color.White,
+                    fontFamily = FontFamily.Serif
                 )
                 Text(
                     text = "Explora la riqueza lingüística, la guematría y el método Pardes.",
@@ -262,17 +301,15 @@ private fun WordOfTheDayCard(
     onAnalyzeClick: () -> Unit
 ) {
     Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp),
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.6f)
-        )
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors(containerColor = Color(0xFFFAF6EC)),
+        border = BorderStroke(1.dp, Color(0xFFE2D1A8)),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
         Column(
-            modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+            modifier = Modifier.padding(18.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -286,26 +323,26 @@ private fun WordOfTheDayCard(
                     Icon(
                         imageVector = Icons.Default.WbSunny,
                         contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary,
+                        tint = Color(0xFF9E721D),
                         modifier = Modifier.size(18.dp)
                     )
                     Text(
                         text = "PALABRA DEL DÍA",
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.primary,
+                        color = Color(0xFF9E721D),
                         letterSpacing = 1.sp
                     )
                 }
                 Surface(
-                    shape = RoundedCornerShape(12.dp),
-                    color = MaterialTheme.colorScheme.primary
+                    shape = RoundedCornerShape(10.dp),
+                    color = Color(0xFFC79E3E)
                 ) {
                     Text(
                         text = "Guematría: ${word.gematriaValue}",
                         fontSize = 11.sp,
                         fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onPrimary,
+                        color = Color(0xFF241804),
                         modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
                     )
                 }
@@ -320,21 +357,21 @@ private fun WordOfTheDayCard(
                     text = word.hebrew,
                     fontSize = 28.sp,
                     fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurface
+                    color = Color(0xFF2C1E03)
                 )
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         text = word.transliteration,
                         fontSize = 15.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        color = MaterialTheme.colorScheme.onSurface,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF2C1E03),
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
                     Text(
                         text = word.translation,
                         fontSize = 12.sp,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        color = Color(0xFF6B5D45),
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
@@ -344,40 +381,62 @@ private fun WordOfTheDayCard(
             Text(
                 text = word.significance,
                 fontSize = 12.sp,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                color = Color(0xFF5A4F3E),
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis
             )
 
-            Button(
-                onClick = onAnalyzeClick,
-                modifier = Modifier
-                    .align(Alignment.End)
-                    .testTag("word_of_day_analyze"),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.primary
-                )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.End
             ) {
-                Text("Analizar con IA", fontSize = 12.sp)
-                Spacer(modifier = Modifier.width(4.dp))
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.ArrowForward,
-                    contentDescription = null,
-                    modifier = Modifier.size(16.dp)
-                )
+                Surface(
+                    shape = RoundedCornerShape(16.dp),
+                    color = Color.Transparent,
+                    modifier = Modifier.clickable(onClick = onAnalyzeClick)
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .background(
+                                Brush.horizontalGradient(
+                                    listOf(Color(0xFFB58728), Color(0xFF8B6416))
+                                ),
+                                RoundedCornerShape(16.dp)
+                            )
+                            .padding(horizontal = 14.dp, vertical = 8.dp)
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(
+                                text = "Analizar con IA",
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color.White
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+                                contentDescription = null,
+                                tint = Color.White,
+                                modifier = Modifier.size(14.dp)
+                            )
+                        }
+                    }
+                }
             }
         }
     }
 }
 
+/**
+ * Tarjeta de Módulo Principal iOS (diseño fiel a imagen 1)
+ */
 @Composable
-private fun ModuleCard(
+private fun IosMainModuleCard(
+    pillNumber: String,
     title: String,
-    subtitle: String,
     description: String,
     imageResId: Int,
-    icon: ImageVector,
-    accentColor: Color,
+    pillBgColor: Color,
     testTag: String,
     onClick: () -> Unit
 ) {
@@ -386,17 +445,17 @@ private fun ModuleCard(
             .fillMaxWidth()
             .testTag(testTag)
             .clickable { onClick() },
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface
-        ),
+        shape = RoundedCornerShape(18.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        border = BorderStroke(1.dp, Color(0xFFE2D6C0)),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Column {
+            // Imagen superior con banner y pill tag
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(130.dp)
+                    .height(100.dp)
             ) {
                 Image(
                     painter = painterResource(id = imageResId),
@@ -404,6 +463,7 @@ private fun ModuleCard(
                     modifier = Modifier.fillMaxSize(),
                     contentScale = ContentScale.Crop
                 )
+                // Overlay oscuro sutil
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
@@ -411,80 +471,94 @@ private fun ModuleCard(
                             Brush.verticalGradient(
                                 colors = listOf(
                                     Color.Transparent,
-                                    Color.Black.copy(alpha = 0.7f)
+                                    Color.Black.copy(alpha = 0.55f)
                                 )
                             )
                         )
                 )
-                Row(
+
+                // Pill en esquina superior izquierda
+                Surface(
+                    shape = RoundedCornerShape(14.dp),
+                    color = pillBgColor.copy(alpha = 0.92f),
+                    border = BorderStroke(1.dp, Color(0xFFE5C884).copy(alpha = 0.6f)),
                     modifier = Modifier
-                        .align(Alignment.BottomStart)
-                        .padding(12.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        .align(Alignment.TopStart)
+                        .padding(10.dp)
                 ) {
-                    Surface(
-                        shape = CircleShape,
-                        color = accentColor,
-                        modifier = Modifier.size(32.dp)
+                    Row(
+                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(5.dp)
                     ) {
-                        Box(contentAlignment = Alignment.Center) {
-                            Icon(
-                                imageVector = icon,
-                                contentDescription = null,
-                                tint = Color.White,
-                                modifier = Modifier.size(18.dp)
-                            )
-                        }
+                        GoldenMenorahIcon(size = 13.dp)
+                        Text(
+                            text = pillNumber,
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFFFFF6DF)
+                        )
                     }
-                    Text(
-                        text = title,
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.White
-                    )
                 }
             }
 
+            // Cuerpo blanco con tipografía y botón dorado
             Column(
-                modifier = Modifier.padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(6.dp)
+                modifier = Modifier.padding(12.dp),
+                verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
                 Text(
-                    text = subtitle,
-                    fontSize = 13.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    color = accentColor
+                    text = title,
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFF261D0A),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
                 )
                 Text(
                     text = description,
                     fontSize = 12.sp,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    lineHeight = 16.sp
+                    color = Color(0xFF6B6354),
+                    lineHeight = 16.sp,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
                 )
 
+                Spacer(modifier = Modifier.height(2.dp))
+
                 Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 8.dp),
-                    horizontalArrangement = Arrangement.End,
-                    verticalAlignment = Alignment.CenterVertically
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.End
                 ) {
-                    Text(
-                        text = "Entrar al módulo",
-                        fontSize = 13.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = accentColor
-                    )
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.ArrowForward,
-                        contentDescription = null,
-                        tint = accentColor,
-                        modifier = Modifier.size(16.dp)
-                    )
+                    Box(
+                        modifier = Modifier
+                            .background(
+                                Brush.horizontalGradient(
+                                    listOf(Color(0xFFB58728), Color(0xFF8B6416))
+                                ),
+                                RoundedCornerShape(14.dp)
+                            )
+                            .padding(horizontal = 12.dp, vertical = 6.dp)
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(
+                                text = "Entrar al módulo",
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color.White
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+                                contentDescription = null,
+                                tint = Color.White,
+                                modifier = Modifier.size(12.dp)
+                            )
+                        }
+                    }
                 }
             }
         }
     }
 }
+

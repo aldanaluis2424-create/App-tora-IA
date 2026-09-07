@@ -284,8 +284,8 @@ object HebrewMonthData {
         ),
         HebrewMonth(
             id = "av",
-            nameSpanish = "Av (Menachem Av)",
-            nameHebrew = "אָב / מְנַחֵם אָב",
+            nameSpanish = "Av",
+            nameHebrew = "אָב",
             monthNumberCivil = 11,
             monthNumberReligious = 5,
             gregorianApprox = "Julio - Agosto",
@@ -295,7 +295,7 @@ object HebrewMonthData {
             agriculturalHarvest = "Vendimia de la uva y secado de los higos al sol.",
             agriculturalIcons = listOf("☀️", "🍷", "🌾"),
             festivalsInMonth = listOf("Ayuno del 9 de Av (Tisha B'Av - Destrucción del Templo)", "Tu B'Av (15 de Av - Fiesta del Amor y la Reconciliación)"),
-            historyMeaning = "Denominado con consuelo 'Menachem Av' (El Padre que Consuela). Contiene el día de mayor lamento (9 de Av) y uno de los más alegres (15 de Av, el día del amor y la unión matrimonial en Israel).",
+            historyMeaning = "Conocido también como 'Menajem Av' (El Padre que Consuela). Es el quinto mes religioso y undécimo civil. Contiene el día de mayor aflicción (9 de Av - Tisha B'Av, destrucción del Templo) y uno de los días más alegres (15 de Av - Tu B'Av, fiesta del amor y la unión matrimonial en Israel).",
             biblicalQuotes = listOf(
                 BiblicalQuote("Números 33:38", "וַיַּעַל אַהֲרֹן הַכֹּהֵן... בַּחֹדֶשׁ הַחֲמִישִׁי בְּאֶחָד לַחֹדֶשׁ", "Y subió el sacerdote Aarón... en el mes quinto, el primero del mes...", "Fallecimiento de Aarón."),
                 BiblicalQuote("Jeremías 1:3", "עַד-גְּלוֹת יְרוּשָׁלִַם בַּחֹדֶשׁ הַחֲמִישִׁי", "...hasta la cautividad de Jerusalén en el mes quinto...", "El exilio en Av.")

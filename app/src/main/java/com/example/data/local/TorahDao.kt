@@ -38,6 +38,12 @@ interface TorahDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertNote(note: UserNoteEntity)
 
+    @Update
+    suspend fun updateNote(note: UserNoteEntity)
+
     @Query("DELETE FROM user_notes WHERE noteId = :noteId")
     suspend fun deleteNoteById(noteId: Long)
+
+    @Query("DELETE FROM user_notes WHERE noteId IN (:noteIds)")
+    suspend fun deleteNotesByIds(noteIds: List<Long>)
 }

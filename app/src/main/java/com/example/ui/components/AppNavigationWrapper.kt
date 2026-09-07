@@ -1,11 +1,13 @@
 package com.example.ui.components
 
+import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -18,15 +20,25 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
+import com.example.R
 import com.example.ui.navigation.Screen
+import com.example.ui.screens.GoldenMenorahIcon
 import com.example.ui.viewmodel.TorahViewModel
 import kotlinx.coroutines.launch
 
@@ -37,6 +49,7 @@ fun AppNavigationWrapper(
     viewModel: TorahViewModel,
     content: @Composable (PaddingValues) -> Unit
 ) {
+    val context = LocalContext.current
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
     val showReaderSettings by viewModel.showReaderSettings.collectAsState()
@@ -57,14 +70,14 @@ fun AppNavigationWrapper(
 
     val screenTitle = remember(currentRoute) {
         when {
-            currentRoute == Screen.Home.route -> "Torah IA — Estudio Bíblico"
+            currentRoute == Screen.Home.route -> "Torah IA - Estudio Bíblico"
             currentRoute == Screen.AlefatoList.route -> "Alefato Hebreo (22 Letras)"
             currentRoute.startsWith("letter_detail") -> "Detalle de Letra"
-            currentRoute == Screen.FeastsList.route -> "Fiestas de Adonai (Moedim)"
-            currentRoute.startsWith("feast_detail") -> "Detalle de la Festividad"
+            currentRoute == Screen.FeastsList.route -> "Fiestas Judías (Moedim)"
+            currentRoute.startsWith("feast_detail") -> "Detalle de Festividad"
             currentRoute == Screen.CalendarList.route -> "Calendario Hebreo"
             currentRoute.startsWith("month_detail") -> "Detalle del Mes"
-            currentRoute == Screen.Translator.route -> "Traductor & Gematría IA"
+            currentRoute == Screen.Translator.route -> "Rabí-IA (Estudio & Traducción)"
             currentRoute == Screen.Favorites.route -> "Mis Favoritos & Notas"
             else -> "Torah IA"
         }
@@ -79,7 +92,7 @@ fun AppNavigationWrapper(
             currentRoute.startsWith("feast_detail") -> "Inicio > Fiestas > Detalle"
             currentRoute == Screen.CalendarList.route -> "Inicio > Calendario"
             currentRoute.startsWith("month_detail") -> "Inicio > Calendario > Detalle"
-            currentRoute == Screen.Translator.route -> "Inicio > Traductor IA"
+            currentRoute == Screen.Translator.route -> "Inicio > Rabí-IA"
             currentRoute == Screen.Favorites.route -> "Inicio > Mis Favoritos"
             else -> "Inicio"
         }
@@ -107,7 +120,6 @@ fun AppNavigationWrapper(
             if (currentRoute == targetRoute) {
                 // Already on this main screen
             } else if (detailPrefix != null && currentRoute.startsWith(detailPrefix)) {
-                // On a detail screen of this module, pop back to main list
                 val popped = navController.popBackStack(targetRoute, inclusive = false)
                 if (!popped) {
                     navController.navigate(targetRoute) {
@@ -116,7 +128,6 @@ fun AppNavigationWrapper(
                     }
                 }
             } else {
-                // Navigating from another module
                 navController.navigate(targetRoute) {
                     popUpTo(Screen.Home.route) { saveState = false }
                     launchSingleTop = true
@@ -129,48 +140,65 @@ fun AppNavigationWrapper(
         drawerState = drawerState,
         drawerContent = {
             ModalDrawerSheet(
-                modifier = Modifier.width(300.dp)
+                modifier = Modifier.width(300.dp),
+                drawerContainerColor = Color(0xFFFAF7F0)
             ) {
-                // Drawer Header
+                // Drawer Header with Hebrew Letters Imagery
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(170.dp)
-                        .background(
-                            Brush.verticalGradient(
-                                colors = listOf(
-                                    Color(0xFF1E2A38),
-                                    Color(0xFF2D3E50)
+                        .height(190.dp)
+                ) {
+                    Image(
+                        painter = painterResource(id = R.drawable.img_hebrew_letters_1787603329352),
+                        contentDescription = "Letras Hebreas",
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Crop
+                    )
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(
+                                Brush.verticalGradient(
+                                    colors = listOf(
+                                        Color(0x661E2A38),
+                                        Color(0xE60D1B2A),
+                                        Color(0xF50D1B2A)
+                                    )
                                 )
                             )
-                        )
-                        .padding(20.dp),
-                    contentAlignment = Alignment.BottomStart
-                ) {
-                    Column {
+                    )
+                    Column(
+                        modifier = Modifier
+                            .align(Alignment.BottomStart)
+                            .padding(18.dp)
+                    ) {
                         Surface(
                             shape = CircleShape,
                             color = Color(0xFFD4AF37),
-                            modifier = Modifier.size(48.dp)
+                            modifier = Modifier.size(44.dp),
+                            shadowElevation = 4.dp
                         ) {
                             Box(contentAlignment = Alignment.Center) {
                                 Text(
                                     text = "א",
                                     style = MaterialTheme.typography.titleLarge,
+                                    fontWeight = FontWeight.Bold,
                                     color = Color(0xFF1E2A38)
                                 )
                             }
                         }
-                        Spacer(modifier = Modifier.height(12.dp))
+                        Spacer(modifier = Modifier.height(10.dp))
                         Text(
                             text = "Torah IA Studio",
                             style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
                             color = Color.White
                         )
                         Text(
-                            text = "Plataforma de Estudio de Raíces Hebreas",
+                            text = "Estudio y Raíces Hebreas con IA",
                             style = MaterialTheme.typography.bodySmall,
-                            color = Color.White.copy(alpha = 0.7f)
+                            color = Color.White.copy(alpha = 0.85f)
                         )
                     }
                 }
@@ -183,36 +211,44 @@ fun AppNavigationWrapper(
                     Triple(Screen.AlefatoList.route, "Alefato Hebreo (22 Letras)", Icons.Default.Translate),
                     Triple(Screen.FeastsList.route, "Fiestas Judías (Moedim)", Icons.Default.Celebration),
                     Triple(Screen.CalendarList.route, "Calendario Hebreo", Icons.Default.CalendarMonth),
-                    Triple(Screen.Translator.route, "Traductor & Gematría IA", Icons.Default.AutoAwesome),
-                    Triple(Screen.Favorites.route, "Mis Favoritos & Notas", Icons.Default.Star)
+                    Triple(Screen.Translator.route, "Rabí-IA (Chat & Traductor)", Icons.Default.AutoAwesome),
+                    Triple(Screen.Favorites.route, "Mis Notas & Marcadores", Icons.Default.EditNote)
                 )
 
                 drawerItems.forEach { (route, label, icon) ->
                     val isSelected = currentRoute == route
                     NavigationDrawerItem(
-                        icon = { Icon(icon, contentDescription = label) },
-                        label = { Text(label) },
+                        icon = { Icon(icon, contentDescription = label, tint = Color(0xFF8B672B)) },
+                        label = { Text(label, fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium) },
                         selected = isSelected,
                         onClick = {
                             scope.launch { drawerState.close() }
                             navigateToTab(route)
                         },
-                        modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
+                        modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding),
+                        colors = NavigationDrawerItemDefaults.colors(
+                            selectedContainerColor = Color(0xFFEAD8B2),
+                            selectedTextColor = Color(0xFF382705),
+                            unselectedTextColor = Color(0xFF4A4235)
+                        )
                     )
                 }
 
-                Divider(modifier = Modifier.padding(vertical = 12.dp))
+                HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp), color = Color(0xFFE0D2BC))
 
                 // Quick Settings item in Drawer
                 NavigationDrawerItem(
-                    icon = { Icon(Icons.Default.FormatSize, contentDescription = "Ajustes de Lectura") },
-                    label = { Text("Ajustes de Lectura") },
+                    icon = { Icon(Icons.Default.FormatSize, contentDescription = "Ajustes de Lectura", tint = Color(0xFF8B672B)) },
+                    label = { Text("Ajustes de Lectura", fontWeight = FontWeight.Medium) },
                     selected = false,
                     onClick = {
                         scope.launch { drawerState.close() }
                         viewModel.openReaderSettings()
                     },
-                    modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
+                    modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding),
+                    colors = NavigationDrawerItemDefaults.colors(
+                        unselectedTextColor = Color(0xFF4A4235)
+                    )
                 )
             }
         }
@@ -220,42 +256,124 @@ fun AppNavigationWrapper(
         Scaffold(
             topBar = {
                 if (isTopLevelScreen) {
-                    CenterAlignedTopAppBar(
-                        title = {
-                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    // Header estilo Mármol / Pergamino con Menorá Dorada (como en imagen de referencia)
+                    Surface(
+                        modifier = Modifier.fillMaxWidth(),
+                        color = Color(0xFFF5EFE3),
+                        shape = RoundedCornerShape(bottomStart = 24.dp, bottomEnd = 24.dp),
+                        border = BorderStroke(1.dp, Color(0xFFE2D5BE)),
+                        shadowElevation = 4.dp
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .statusBarsPadding()
+                                .padding(horizontal = 16.dp, vertical = 10.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            // Botón de Menú con icono de hamburguesa claro y Menorá
+                            Surface(
+                                shape = RoundedCornerShape(12.dp),
+                                color = Color(0xFFEDE2CE),
+                                border = BorderStroke(1.dp, Color(0xFFD6C2A0)),
+                                modifier = Modifier
+                                    .clickable {
+                                        scope.launch {
+                                            if (drawerState.isClosed) drawerState.open() else drawerState.close()
+                                        }
+                                    }
+                                    .testTag("open_drawer")
+                            ) {
+                                Row(
+                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 6.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Menu,
+                                        contentDescription = "Abrir Menú Principal",
+                                        tint = Color(0xFF5A3E12),
+                                        modifier = Modifier.size(22.dp)
+                                    )
+                                    GoldenMenorahIcon(size = 22.dp)
+                                }
+                            }
+
+                            Spacer(modifier = Modifier.width(10.dp))
+
+                            Column(modifier = Modifier.weight(1f)) {
                                 Text(
                                     text = screenTitle,
-                                    style = MaterialTheme.typography.titleMedium
+                                    fontSize = 17.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color(0xFF261A07),
+                                    fontFamily = FontFamily.Serif
                                 )
                                 Text(
                                     text = breadcrumbText,
-                                    style = MaterialTheme.typography.labelSmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                                    fontSize = 11.sp,
+                                    fontWeight = FontWeight.Medium,
+                                    color = Color(0xFF7A684C)
                                 )
                             }
-                        },
-                        navigationIcon = {
+
+                            // Botón de Ajustes de Lectura en Header
                             IconButton(
-                                onClick = { scope.launch { drawerState.open() } },
-                                modifier = Modifier.testTag("open_drawer")
+                                onClick = { viewModel.openReaderSettings() },
+                                modifier = Modifier
+                                    .size(36.dp)
+                                    .testTag("open_reader_settings")
                             ) {
-                                Icon(Icons.Default.Menu, contentDescription = "Menú")
+                                Icon(
+                                    imageVector = Icons.Default.FormatSize,
+                                    contentDescription = "Ajustes de Lectura",
+                                    tint = Color(0xFF8B672B),
+                                    modifier = Modifier.size(22.dp)
+                                )
                             }
-                        },
-                        actions = {},
-                        colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                            containerColor = MaterialTheme.colorScheme.surface
-                        )
-                    )
+                        }
+                    }
                 }
             },
             bottomBar = {
-                val bottomNavItems = listOf(
-                    Screen.Home.route to "Inicio",
-                    Screen.AlefatoList.route to "Alefato",
-                    Screen.FeastsList.route to "Fiestas",
-                    Screen.CalendarList.route to "Calendario",
-                    Screen.Translator.route to "Traductor"
+                // Barra Inferior Flotante Metálica Dorada estilo Lujo Bíblico
+                val navTabs = listOf(
+                    NavigationTabItem(
+                        id = "inicio",
+                        label = "Inicio",
+                        icon = Icons.Default.Home,
+                        route = Screen.Home.route
+                    ),
+                    NavigationTabItem(
+                        id = "texto",
+                        label = "Alefato",
+                        route = Screen.AlefatoList.route,
+                        isHebrewText = true
+                    ),
+                    NavigationTabItem(
+                        id = "estrella",
+                        label = "Fiestas",
+                        icon = Icons.Default.Flare,
+                        route = Screen.FeastsList.route
+                    ),
+                    NavigationTabItem(
+                        id = "sol_luna",
+                        label = "Calendario",
+                        icon = Icons.Default.NightsStay,
+                        route = Screen.CalendarList.route
+                    ),
+                    NavigationTabItem(
+                        id = "ajustes",
+                        label = "Rabí",
+                        icon = Icons.Default.AutoAwesome,
+                        route = Screen.Translator.route
+                    ),
+                    NavigationTabItem(
+                        id = "comentario",
+                        label = "Notas",
+                        icon = Icons.Default.EditNote,
+                        route = Screen.Favorites.route
+                    )
                 )
 
                 Column(
@@ -264,12 +382,11 @@ fun AppNavigationWrapper(
                         .navigationBarsPadding(),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    // Samsung-style Floating handle pill when taskbar is hidden
                     if (!isTaskbarVisible) {
                         Surface(
                             onClick = { isTaskbarVisible = true },
                             shape = RoundedCornerShape(16.dp),
-                            color = MaterialTheme.colorScheme.primaryContainer,
+                            color = Color(0xFF8B672B),
                             tonalElevation = 6.dp,
                             shadowElevation = 6.dp,
                             modifier = Modifier
@@ -285,19 +402,19 @@ fun AppNavigationWrapper(
                                     modifier = Modifier
                                         .width(18.dp)
                                         .height(3.dp)
-                                        .background(MaterialTheme.colorScheme.primary, CircleShape)
+                                        .background(Color(0xFFFFDF7A), CircleShape)
                                 )
                                 Icon(
                                     imageVector = Icons.Default.KeyboardArrowUp,
                                     contentDescription = "Mostrar Barra",
                                     modifier = Modifier.size(16.dp),
-                                    tint = MaterialTheme.colorScheme.primary
+                                    tint = Color(0xFFFFDF7A)
                                 )
                                 Text(
                                     text = "Barra Hebrea",
                                     style = MaterialTheme.typography.labelSmall,
                                     fontWeight = FontWeight.Bold,
-                                    color = MaterialTheme.colorScheme.primary
+                                    color = Color.White
                                 )
                             }
                         }
@@ -309,73 +426,133 @@ fun AppNavigationWrapper(
                         exit = slideOutVertically(targetOffsetY = { it }) + fadeOut()
                     ) {
                         Surface(
-                            shape = RoundedCornerShape(24.dp),
-                            color = MaterialTheme.colorScheme.surfaceColorAtElevation(3.dp),
-                            tonalElevation = 8.dp,
-                            shadowElevation = 8.dp,
-                            border = BorderStroke(
-                                1.dp,
-                                MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)
-                            ),
+                            shape = RoundedCornerShape(26.dp),
+                            color = Color.Transparent,
+                            border = BorderStroke(1.2.dp, Color(0xFFC79E3E)),
+                            shadowElevation = 10.dp,
                             modifier = Modifier
-                                .padding(horizontal = 12.dp, vertical = 4.dp)
-                                .fillMaxWidth(0.96f)
+                                .padding(horizontal = 12.dp, vertical = 6.dp)
+                                .fillMaxWidth(0.98f)
                         ) {
-                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                // Samsung style top drag/collapse handle bar
-                                Box(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .clickable { isTaskbarVisible = false }
-                                        .padding(vertical = 6.dp),
-                                    contentAlignment = Alignment.Center
-                                ) {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .background(
+                                        Brush.verticalGradient(
+                                            listOf(
+                                                Color(0xFF8D6827),
+                                                Color(0xFF5A3E12)
+                                            )
+                                        )
+                                    )
+                            ) {
+                                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                    // Handle superior para colapsar
                                     Box(
                                         modifier = Modifier
-                                            .width(38.dp)
-                                            .height(4.dp)
-                                            .background(
-                                                MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f),
-                                                CircleShape
-                                            )
-                                    )
-                                }
-
-                                Row(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(vertical = 4.dp, horizontal = 6.dp),
-                                    horizontalArrangement = Arrangement.SpaceAround,
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    bottomNavItems.forEach { (route, label) ->
-                                        val isSelected = when (route) {
-                                            Screen.Home.route -> currentRoute == Screen.Home.route
-                                            Screen.AlefatoList.route -> currentRoute == Screen.AlefatoList.route || currentRoute.startsWith("letter_detail")
-                                            Screen.FeastsList.route -> currentRoute == Screen.FeastsList.route || currentRoute.startsWith("feast_detail")
-                                            Screen.CalendarList.route -> currentRoute == Screen.CalendarList.route || currentRoute.startsWith("month_detail")
-                                            Screen.Translator.route -> currentRoute == Screen.Translator.route
-                                            else -> currentRoute == route
-                                        }
-
-                                        val activeColor = MaterialTheme.colorScheme.primary
-                                        val inactiveColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
-
+                                            .fillMaxWidth()
+                                            .clickable { isTaskbarVisible = false }
+                                            .padding(top = 6.dp, bottom = 2.dp),
+                                        contentAlignment = Alignment.Center
+                                    ) {
                                         Box(
-                                            contentAlignment = Alignment.Center,
                                             modifier = Modifier
-                                                .clip(RoundedCornerShape(18.dp))
-                                                .clickable {
-                                                    navigateToTab(route)
-                                                }
+                                                .width(36.dp)
+                                                .height(3.5.dp)
                                                 .background(
-                                                    if (isSelected) MaterialTheme.colorScheme.primaryContainer
-                                                    else Color.Transparent
+                                                    Color(0xFFE8D3A0).copy(alpha = 0.5f),
+                                                    CircleShape
                                                 )
-                                                .padding(horizontal = 14.dp, vertical = 8.dp)
-                                                .testTag("nav_icon_${route}")
-                                        ) {
-                                            HebrewModuleIcon(route = route, isSelected = isSelected)
+                                        )
+                                    }
+
+                                    // Fila de 6 botones de navegación dorados (distribución equitativa para evitar apilamiento de texto)
+                                    Row(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(horizontal = 4.dp, vertical = 3.dp),
+                                        horizontalArrangement = Arrangement.SpaceEvenly,
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        navTabs.forEach { tab ->
+                                            val isSelected = when (tab.route) {
+                                                null -> drawerState.isOpen
+                                                Screen.Home.route -> currentRoute == Screen.Home.route && drawerState.isClosed
+                                                Screen.AlefatoList.route -> (currentRoute == Screen.AlefatoList.route || currentRoute.startsWith("letter_detail")) && drawerState.isClosed
+                                                Screen.FeastsList.route -> (currentRoute == Screen.FeastsList.route || currentRoute.startsWith("feast_detail")) && drawerState.isClosed
+                                                Screen.CalendarList.route -> (currentRoute == Screen.CalendarList.route || currentRoute.startsWith("month_detail")) && drawerState.isClosed
+                                                Screen.Translator.route -> currentRoute == Screen.Translator.route && drawerState.isClosed
+                                                Screen.Favorites.route -> currentRoute == Screen.Favorites.route && drawerState.isClosed
+                                                else -> currentRoute == tab.route && drawerState.isClosed
+                                            }
+
+                                            // Cápsula activa dorada brillante o botón limpio
+                                            val itemModifier = Modifier
+                                                .weight(1f)
+                                                .clip(RoundedCornerShape(14.dp))
+                                                .then(
+                                                    if (isSelected) {
+                                                        Modifier.background(
+                                                            Brush.verticalGradient(
+                                                                listOf(
+                                                                    Color(0xFFF1DEAE),
+                                                                    Color(0xFFCBA03E)
+                                                                )
+                                                            )
+                                                        )
+                                                    } else {
+                                                        Modifier
+                                                    }
+                                                )
+                                                .clickable {
+                                                    if (tab.route != null) {
+                                                        if (drawerState.isOpen) {
+                                                            scope.launch { drawerState.close() }
+                                                        }
+                                                        navigateToTab(tab.route)
+                                                    } else {
+                                                        scope.launch {
+                                                            if (drawerState.isClosed) drawerState.open() else drawerState.close()
+                                                        }
+                                                    }
+                                                }
+                                                .padding(horizontal = 2.dp, vertical = 4.dp)
+
+                                            Column(
+                                                modifier = itemModifier.testTag("nav_tab_${tab.id}"),
+                                                horizontalAlignment = Alignment.CenterHorizontally,
+                                                verticalArrangement = Arrangement.Center
+                                            ) {
+                                                val iconColor = if (isSelected) Color(0xFF332306) else Color(0xFFE5CE9F)
+                                                val textColor = if (isSelected) Color(0xFF332306) else Color(0xFFE5CE9F)
+
+                                                if (tab.isHebrewText) {
+                                                    Text(
+                                                        text = "א",
+                                                        fontSize = 18.sp,
+                                                        fontWeight = FontWeight.Black,
+                                                        color = iconColor
+                                                    )
+                                                } else if (tab.icon != null) {
+                                                    Icon(
+                                                        imageVector = tab.icon,
+                                                        contentDescription = tab.label,
+                                                        tint = iconColor,
+                                                        modifier = Modifier.size(19.dp)
+                                                    )
+                                                }
+
+                                                Text(
+                                                    text = tab.label,
+                                                    fontSize = 9.5.sp,
+                                                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                                                    color = textColor,
+                                                    maxLines = 1,
+                                                    softWrap = false,
+                                                    overflow = TextOverflow.Ellipsis,
+                                                    textAlign = TextAlign.Center
+                                                )
+                                            }
                                         }
                                     }
                                 }
@@ -385,64 +562,25 @@ fun AppNavigationWrapper(
                 }
             }
         ) { paddingValues ->
-            content(paddingValues)
+            Box(modifier = Modifier.fillMaxSize()) {
+                content(paddingValues)
 
-            if (showReaderSettings) {
-                ReaderSettingsDialog(
-                    viewModel = viewModel,
-                    onDismiss = { viewModel.closeReaderSettings() }
-                )
+                if (showReaderSettings) {
+                    ReaderSettingsDialog(
+                        viewModel = viewModel,
+                        onDismiss = { viewModel.closeReaderSettings() }
+                    )
+                }
             }
         }
     }
 }
 
-@Composable
-private fun HebrewModuleIcon(route: String, isSelected: Boolean) {
-    val activeColor = MaterialTheme.colorScheme.primary
-    val inactiveColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
-    val color = if (isSelected) activeColor else inactiveColor
+private data class NavigationTabItem(
+    val id: String,
+    val label: String,
+    val icon: ImageVector? = null,
+    val route: String? = null,
+    val isHebrewText: Boolean = false
+)
 
-    when (route) {
-        Screen.Home.route -> Icon(
-            imageVector = Icons.Default.HistoryEdu,
-            contentDescription = "Inicio / Torah",
-            tint = color,
-            modifier = Modifier.size(26.dp)
-        )
-        Screen.AlefatoList.route -> {
-            Box(contentAlignment = Alignment.Center, modifier = Modifier.size(26.dp)) {
-                Text(
-                    text = "א",
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.ExtraBold,
-                    color = color
-                )
-            }
-        }
-        Screen.FeastsList.route -> Icon(
-            imageVector = Icons.Default.Flare,
-            contentDescription = "Fiestas Judías",
-            tint = color,
-            modifier = Modifier.size(26.dp)
-        )
-        Screen.CalendarList.route -> Icon(
-            imageVector = Icons.Default.NightsStay,
-            contentDescription = "Calendario Hebreo",
-            tint = color,
-            modifier = Modifier.size(26.dp)
-        )
-        Screen.Translator.route -> Icon(
-            imageVector = Icons.Default.AutoAwesome,
-            contentDescription = "Traductor / Guematría",
-            tint = color,
-            modifier = Modifier.size(26.dp)
-        )
-        else -> Icon(
-            imageVector = Icons.Default.Star,
-            contentDescription = null,
-            tint = color,
-            modifier = Modifier.size(26.dp)
-        )
-    }
-}

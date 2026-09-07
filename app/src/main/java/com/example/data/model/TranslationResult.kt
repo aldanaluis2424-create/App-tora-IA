@@ -7,6 +7,7 @@ data class TranslationResult(
     val mainTranslation: String,
     val pronunciationPhonetic: String,
     val hebrewSquareScript: String,
+    val rootWord: String = "",
     val gematriaTotalValue: Int,
     val gematriaBreakdown: List<LetterBreakdown>,
     val spiritualMeaning: String,
@@ -14,12 +15,14 @@ data class TranslationResult(
     val biblicalQuotes: List<BiblicalQuote>,
     val rabbinicComments: List<QuoteComment>,
     val midrashInsight: String,
+    val zoharInsight: String = "",
     val kabbalahInsight: String,
     val pardesPeshat: String,
     val pardesRemez: String,
     val pardesDerash: String,
     val pardesSod: String,
-    val isFromAi: Boolean = true
+    val isFromAi: Boolean = true,
+    val aiModelUsed: String = "Gemini 3.1 Flash Lite"
 )
 
 data class LetterBreakdown(

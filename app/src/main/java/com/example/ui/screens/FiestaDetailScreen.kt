@@ -8,6 +8,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.*
@@ -16,6 +17,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
@@ -26,7 +28,6 @@ import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.example.data.model.JewishFeast
 import com.example.ui.components.FullscreenImageViewer
-import com.example.ui.components.StudyModeTabContent
 import com.example.ui.viewmodel.TorahViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -40,21 +41,20 @@ fun FiestaDetailScreen(
     val isFavState by viewModel.isFavorite("feast_${feast.id}").collectAsState()
     val accentColor = parseColor(feast.themeColorHex)
 
-    var selectedTabIndex by remember { mutableIntStateOf(0) }
+    var activeModalSection by remember { mutableStateOf<String?>(null) }
     var selectedFullscreenImageUrl by remember { mutableStateOf<String?>(null) }
 
-    val tabs = listOf(
-        "📖 Historia",
-        "📜 Biblia",
-        "🕍 Costumbres",
-        "🍷 Comidas",
-        "🙏 Oraciones",
-        "👨🏻‍🏫 Rabínicos",
-        "📚 Midrash",
-        "✨ Kabbalah",
-        "🔮 Escatología",
-        "📖 Fuentes",
-        "🛠️ Modo Estudio"
+    val moduleItems = listOf(
+        Triple("history", "Historia y Significado", "Contexto histórico, origen y propósito") to (Icons.Default.History to "Histórico"),
+        Triple("biblical", "Base Bíblica y Mandamiento", "Mitzvot y pasajes fundacionales") to (Icons.Default.MenuBook to "Escrituras"),
+        Triple("customs", "Costumbres y Rituales", "Tradiciones, observancias y símbolos") to (Icons.Default.Festival to "Rituales"),
+        Triple("foods", "Comidas y Simbolismo", "Platillos tradicionales y su significado") to (Icons.Default.Restaurant to "Comidas"),
+        Triple("prayers", "Oraciones y Bendiciones", "Liturgia, brajot y cánticos") to (Icons.Default.VolunteerActivism to "Brajot"),
+        Triple("rabbinic", "Comentarios Rabínicos", "Explicaciones de sabios y exégesis tradicional") to (Icons.Default.Person to "Sabios"),
+        Triple("midrash", "Midrash y Cuentos", "Relatos y alegorías de la fiesta") to (Icons.Default.HistoryEdu to "Tradición"),
+        Triple("kabbalah", "Kabbalah y Mística", "Secretos espirituales y dimensiones místicas") to (Icons.Default.AutoAwesome to "Mística"),
+        Triple("eschatology", "Escatología y Profecía", "Cumplimiento mesiánico y tiempos finales") to (Icons.Default.Visibility to "Profético"),
+        Triple("bibliography", "Fuentes y Bibliografía", "Textos originales y referencias académicas") to (Icons.Default.LibraryBooks to "Fuentes")
     )
 
     Scaffold(
@@ -103,148 +103,219 @@ fun FiestaDetailScreen(
             )
         }
     ) { paddingValues ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-                .background(MaterialTheme.colorScheme.background)
-        ) {
-            // Hero Card with Image Backdrop
-            val heroImageUrl = remember(feast.id) { getFeastImageUrl(feast.id) }
-
-            Card(
+        SelectionContainer {
+            LazyColumn(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                shape = RoundedCornerShape(24.dp),
-                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+                    .fillMaxSize()
+                    .padding(paddingValues)
+                    .background(MaterialTheme.colorScheme.background),
+                contentPadding = PaddingValues(16.dp),
+                verticalArrangement = Arrangement.spacedBy(14.dp)
             ) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(180.dp)
-                ) {
-                    Image(
-                        painter = painterResource(id = getFeastDrawableRes(feast.id)),
-                        contentDescription = feast.nameSpanish,
-                        contentScale = ContentScale.Crop,
-                        modifier = Modifier.fillMaxSize()
-                    )
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .background(
-                                androidx.compose.ui.graphics.Brush.verticalGradient(
-                                    colors = listOf(
-                                        Color.Black.copy(alpha = 0.3f),
-                                        Color.Black.copy(alpha = 0.88f)
-                                    )
-                                )
-                            )
-                    )
+                // Hero Card with Image Backdrop estilo iOS
+                item {
+                    val heroImageUrl = remember(feast.id) { getFeastImageUrl(feast.id) }
 
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp),
-                        verticalArrangement = Arrangement.SpaceBetween
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(22.dp),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 3.dp)
                     ) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.Top
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(140.dp)
                         ) {
-                            Surface(
-                                shape = RoundedCornerShape(8.dp),
-                                color = accentColor.copy(alpha = 0.9f),
-                                modifier = Modifier.weight(1f, fill = false)
+                            Image(
+                                painter = painterResource(id = getFeastDrawableRes(feast.id)),
+                                contentDescription = feast.nameSpanish,
+                                contentScale = ContentScale.Crop,
+                                modifier = Modifier.fillMaxSize()
+                            )
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .background(
+                                        androidx.compose.ui.graphics.Brush.verticalGradient(
+                                            colors = listOf(
+                                                Color.Black.copy(alpha = 0.3f),
+                                                Color.Black.copy(alpha = 0.9f)
+                                            )
+                                        )
+                                    )
+                            )
+
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(12.dp),
+                                verticalArrangement = Arrangement.SpaceBetween
                             ) {
-                                Text(
-                                    text = feast.category,
-                                    fontSize = 11.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = Color.White,
-                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                                    maxLines = 1,
-                                    overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
-                                )
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.Top
+                                ) {
+                                    Surface(
+                                        shape = RoundedCornerShape(8.dp),
+                                        color = accentColor.copy(alpha = 0.9f),
+                                        modifier = Modifier.weight(1f, fill = false)
+                                    ) {
+                                        Text(
+                                            text = feast.category,
+                                            fontSize = 10.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            color = Color.White,
+                                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
+                                            maxLines = 1,
+                                            overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
+                                        )
+                                    }
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                    Text(
+                                        text = feast.nameHebrew,
+                                        fontSize = 22.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = Color.White
+                                    )
+                                }
+
+                                Column {
+                                    Text(
+                                        text = feast.nameSpanish,
+                                        fontSize = 18.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = Color.White,
+                                        maxLines = 1,
+                                        overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
+                                    )
+                                    Spacer(modifier = Modifier.height(2.dp))
+                                    Text(
+                                        text = "📅 ${feast.hebrewDate} • (${feast.gregorianApprox})",
+                                        fontSize = 11.sp,
+                                        color = Color.White.copy(alpha = 0.9f),
+                                        maxLines = 1,
+                                        overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
+                                    )
+                                }
                             }
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text(
-                                text = feast.nameHebrew,
-                                fontSize = 28.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = Color.White
-                            )
-                        }
-
-                        Spacer(modifier = Modifier.height(8.dp))
-
-                        Column {
-                            Text(
-                                text = feast.nameSpanish,
-                                fontSize = 20.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = Color.White
-                            )
-                            Spacer(modifier = Modifier.height(2.dp))
-                            Text(
-                                text = "📅 ${feast.hebrewDate} • (${feast.gregorianApprox})",
-                                fontSize = 12.sp,
-                                color = Color.White.copy(alpha = 0.85f)
-                            )
                         }
                     }
                 }
-            }
 
-            // Scrollable Tab Row
-            ScrollableTabRow(
-                selectedTabIndex = selectedTabIndex,
-                edgePadding = 16.dp,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                tabs.forEachIndexed { index, title ->
-                    Tab(
-                        selected = selectedTabIndex == index,
-                        onClick = { selectedTabIndex = index },
-                        text = {
-                            Text(
-                                text = title,
-                                style = MaterialTheme.typography.labelMedium,
-                                fontWeight = if (selectedTabIndex == index) FontWeight.Bold else FontWeight.Normal
-                            )
-                        }
-                    )
+                // Encabezado de Sección estilo iOS
+                item {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 8.dp, bottom = 2.dp, start = 4.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "MÓDULOS DE LA CELEBRACIÓN",
+                            style = MaterialTheme.typography.labelLarge,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.primary,
+                            letterSpacing = 1.sp
+                        )
+                    }
                 }
-            }
 
-            // Tab Content
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(1f)
-            ) {
-                when (selectedTabIndex) {
-                    0 -> TabFeastHistory(feast, accentColor)
-                    1 -> TabFeastBiblicalBasis(feast, accentColor)
-                    2 -> TabFeastCustoms(feast, accentColor)
-                    3 -> TabFeastFoods(feast, accentColor)
-                    4 -> TabFeastPrayers(feast, accentColor)
-                    5 -> TabFeastRabbinic(feast, accentColor)
-                    6 -> TabFeastMidrash(feast, accentColor)
-                    7 -> TabFeastKabbalah(feast, accentColor)
-                    8 -> TabFeastEschatology(feast, accentColor)
-                    9 -> TabFeastBibliography(feast, accentColor)
-                    10 -> StudyModeTabContent(
-                        topicId = "feast_${feast.id}",
-                        topicTitle = "Estudio sobre ${feast.nameSpanish}",
-                        category = "Fiesta Judía",
-                        viewModel = viewModel
+                // Botones estilo iOS para abrir ventanas emergentes a pantalla completa
+                items(moduleItems, key = { it.first.first }) { (info, iconAndBadge) ->
+                    val (key, title, subtitle) = info
+                    val (icon, badge) = iconAndBadge
+                    IosModuleActionTile(
+                        title = title,
+                        subtitle = subtitle,
+                        icon = icon,
+                        accentColor = accentColor,
+                        badgeText = badge,
+                        onClick = { activeModalSection = key }
                     )
                 }
             }
         }
+
+        // Ventanas emergentes a pantalla completa estilo iOS
+        activeModalSection?.let { sectionKey ->
+            val modalTitle: String
+            val modalIcon: ImageVector
+            when (sectionKey) {
+                "history" -> {
+                    modalTitle = "Historia y Significado"
+                    modalIcon = Icons.Default.History
+                }
+                "biblical" -> {
+                    modalTitle = "Base Bíblica y Mandamiento"
+                    modalIcon = Icons.Default.MenuBook
+                }
+                "customs" -> {
+                    modalTitle = "Costumbres y Rituales"
+                    modalIcon = Icons.Default.Festival
+                }
+                "foods" -> {
+                    modalTitle = "Comidas y Simbolismo"
+                    modalIcon = Icons.Default.Restaurant
+                }
+                "prayers" -> {
+                    modalTitle = "Oraciones y Bendiciones"
+                    modalIcon = Icons.Default.VolunteerActivism
+                }
+                "rabbinic" -> {
+                    modalTitle = "Comentarios Rabínicos"
+                    modalIcon = Icons.Default.Person
+                }
+                "midrash" -> {
+                    modalTitle = "Midrash y Tradición"
+                    modalIcon = Icons.Default.HistoryEdu
+                }
+                "kabbalah" -> {
+                    modalTitle = "Kabbalah y Mística"
+                    modalIcon = Icons.Default.AutoAwesome
+                }
+                "eschatology" -> {
+                    modalTitle = "Escatología y Profecía"
+                    modalIcon = Icons.Default.Visibility
+                }
+                "bibliography" -> {
+                    modalTitle = "Fuentes y Bibliografía"
+                    modalIcon = Icons.Default.LibraryBooks
+                }
+                "study" -> {
+                    modalTitle = "Modo Estudio Interactivo"
+                    modalIcon = Icons.Default.Psychology
+                }
+                else -> {
+                    modalTitle = "Estudio"
+                    modalIcon = Icons.Default.Celebration
+                }
+            }
+
+            IosFullscreenModal(
+                title = modalTitle,
+                subtitle = "${feast.nameSpanish} (${feast.nameHebrew})",
+                icon = modalIcon,
+                accentColor = accentColor,
+                onDismiss = { activeModalSection = null }
+            ) {
+                SelectionContainer {
+                    when (sectionKey) {
+                        "history" -> TabFeastHistory(feast, accentColor)
+                        "biblical" -> TabFeastBiblicalBasis(feast, accentColor)
+                        "customs" -> TabFeastCustoms(feast, accentColor)
+                        "foods" -> TabFeastFoods(feast, accentColor)
+                        "prayers" -> TabFeastPrayers(feast, accentColor)
+                        "rabbinic" -> TabFeastRabbinic(feast, accentColor)
+                        "midrash" -> TabFeastMidrash(feast, accentColor)
+                        "kabbalah" -> TabFeastKabbalah(feast, accentColor)
+                        "eschatology" -> TabFeastEschatology(feast, accentColor)
+                        "bibliography" -> TabFeastBibliography(feast, accentColor)
+                    }
+                }
+            }
+        }
+
 
         FullscreenImageViewer(
             imageUrl = selectedFullscreenImageUrl,

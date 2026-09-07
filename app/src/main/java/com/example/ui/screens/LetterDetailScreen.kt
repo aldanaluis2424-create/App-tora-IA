@@ -1,5 +1,7 @@
 package com.example.ui.screens
 
+import android.widget.Toast
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -7,6 +9,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.*
@@ -15,11 +18,17 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
@@ -27,7 +36,6 @@ import com.example.data.model.BiblicalQuote
 import com.example.data.model.HebrewLetter
 import com.example.data.model.QuoteComment
 import com.example.ui.components.FullscreenImageViewer
-import com.example.ui.components.StudyModeTabContent
 import com.example.ui.viewmodel.TorahViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -41,20 +49,21 @@ fun LetterDetailScreen(
     val isFavState by viewModel.isFavorite("letter_${letter.id}").collectAsState()
     val accentColor = parseColor(letter.colorHex)
 
-    var selectedTabIndex by remember { mutableIntStateOf(0) }
+    var activeModalSection by remember { mutableStateOf<String?>(null) }
     var selectedFullscreenImageUrl by remember { mutableStateOf<String?>(null) }
 
-    val tabs = listOf(
-        "📖 Info",
-        "🔢 Gematría",
-        "🌳 Pardés",
-        "📜 Rabínicos",
-        "📚 Citas",
-        "🕎 Midrash",
-        "✨ Kabbalah",
-        "⭐ Curiosidades",
-        "🛠️ Modo Estudio"
+    val moduleItems = listOf(
+        Triple("info", "Significado y Origen", "Pictograma, origen palehebreo y aplicación practica") to (Icons.Default.Info to "Básico"),
+        Triple("gematria", "Gematría y Valores", "Valor numérico (${letter.numericValue}) y conexiones") to (Icons.Default.Numbers to "Valor: ${letter.numericValue}"),
+        Triple("pardes", "Exégesis Pardés", "Peshat, Remez, Drash y Sod") to (Icons.Default.AccountTree to "4 Niveles"),
+        Triple("rabbinic", "Comentarios Rabínicos", "Explicaciones de sabios y exégesis tradicional") to (Icons.Default.MenuBook to "Sabios"),
+        Triple("quotes", "Citas Bíblicas", "Pasajes clave de las Escrituras") to (Icons.Default.AutoStories to "${letter.biblicalQuotes.size} Citas"),
+        Triple("midrash", "Midrash y Talmud", "Relatos y explicaciones talmúdicas") to (Icons.Default.HistoryEdu to "Tradición"),
+        Triple("kabbalah", "Kabbalah y Mística", "Sefer Yetzirah y dimensiones espirituales") to (Icons.Default.AutoAwesome to "Mística"),
+        Triple("curiosities", "Curiosidades y Datos", "Detalles fonéticos y secretos de la letra") to (Icons.Default.Lightbulb to "Curioso")
     )
+
+    val goldPrimary = Color(0xFFA67C1E)
 
     Scaffold(
         topBar = {
@@ -64,18 +73,36 @@ fun LetterDetailScreen(
                         Text(
                             text = "Letra ${letter.name} (${letter.symbol})",
                             fontWeight = FontWeight.Bold,
-                            fontSize = 18.sp
+                            fontSize = 18.sp,
+                            color = Color(0xFF22201D)
                         )
-                        Text(
-                            text = "Valor: ${letter.numericValue} • Transliteración: ${letter.transliteration}",
-                            fontSize = 11.sp,
-                            color = MaterialTheme.colorScheme.primary
-                        )
+                        Spacer(modifier = Modifier.height(2.dp))
+                        Box(
+                            modifier = Modifier
+                                .background(
+                                    brush = Brush.horizontalGradient(
+                                        listOf(Color(0xFFC69C3D), Color(0xFFE5C884), Color(0xFFC69C3D).copy(alpha = 0.25f))
+                                    ),
+                                    shape = RoundedCornerShape(6.dp)
+                                )
+                                .padding(horizontal = 8.dp, vertical = 2.dp)
+                        ) {
+                            Text(
+                                text = "Valor: ${letter.numericValue} • Transliteración: ${letter.transliteration}",
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color.White
+                            )
+                        }
                     }
                 },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
-                        Icon(imageVector = Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver")
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Volver",
+                            tint = goldPrimary
+                        )
                     }
                 },
                 actions = {
@@ -95,104 +122,218 @@ fun LetterDetailScreen(
                         Icon(
                             imageVector = if (isFavState) Icons.Default.Bookmark else Icons.Default.BookmarkBorder,
                             contentDescription = "Favorito",
-                            tint = accentColor
+                            tint = goldPrimary
                         )
                     }
                 }
             )
         }
     ) { paddingValues ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-                .background(MaterialTheme.colorScheme.background)
-        ) {
-            // Hero Banner
-            Card(
+        SelectionContainer {
+            LazyColumn(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                shape = RoundedCornerShape(20.dp),
-                colors = CardDefaults.cardColors(containerColor = accentColor.copy(alpha = 0.12f))
+                    .fillMaxSize()
+                    .padding(paddingValues)
+                    .background(Color(0xFFFAF8F5)),
+                contentPadding = PaddingValues(16.dp),
+                verticalArrangement = Arrangement.spacedBy(14.dp)
             ) {
-                Row(
-                    modifier = Modifier.padding(16.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(
-                            text = "${letter.name} (${letter.nameHebrew})",
-                            style = MaterialTheme.typography.titleLarge,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Text(
-                            text = letter.pictographMeaning,
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            BadgeChip(label = "Gematría: ${letter.numericValue}", color = accentColor)
-                            BadgeChip(label = "Símbolo: ${letter.pictographSymbol}", color = MaterialTheme.colorScheme.secondary)
+                // Hero Banner estilo Pergamino Dorado Compacto
+                item {
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(18.dp),
+                        border = BorderStroke(
+                            1.dp,
+                            Brush.linearGradient(listOf(Color(0xFFE2C682), Color(0xFFA87D20), Color(0xFFE2C682)))
+                        ),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .background(
+                                    Brush.verticalGradient(
+                                        listOf(Color(0xFFFAF7F0), Color(0xFFF1ECE0))
+                                    )
+                                )
+                                .padding(12.dp)
+                        ) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(
+                                        text = "${letter.name} (${letter.nameHebrew})",
+                                        style = MaterialTheme.typography.titleMedium,
+                                        fontWeight = FontWeight.Bold,
+                                        color = Color(0xFF22201D),
+                                        fontSize = 17.sp,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis
+                                    )
+                                    Spacer(modifier = Modifier.height(2.dp))
+                                    Text(
+                                        text = letter.pictographMeaning,
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = Color(0xFF5A554A),
+                                        fontSize = 12.sp,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis
+                                    )
+                                    Spacer(modifier = Modifier.height(8.dp))
+                                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                                        // Gematria Gold Badge
+                                        Box(
+                                            modifier = Modifier
+                                                .background(
+                                                    Brush.horizontalGradient(listOf(Color(0xFFE5C884), Color(0xFFC69C3D))),
+                                                    RoundedCornerShape(6.dp)
+                                                )
+                                                .padding(horizontal = 8.dp, vertical = 3.dp)
+                                        ) {
+                                            Text(
+                                                text = "Gematría: ${letter.numericValue}",
+                                                fontSize = 10.sp,
+                                                fontWeight = FontWeight.Bold,
+                                                color = Color(0xFF382705),
+                                                maxLines = 1
+                                            )
+                                        }
+                                        // Simbolo Gold Badge
+                                        Box(
+                                            modifier = Modifier
+                                                .background(
+                                                    Brush.horizontalGradient(listOf(Color(0xFFD8BD7D), Color(0xFFB5892D))),
+                                                    RoundedCornerShape(6.dp)
+                                                )
+                                                .padding(horizontal = 8.dp, vertical = 3.dp)
+                                        ) {
+                                            Text(
+                                                text = "Símbolo: ${letter.pictographSymbol}",
+                                                fontSize = 10.sp,
+                                                fontWeight = FontWeight.Bold,
+                                                color = Color(0xFF382705),
+                                                maxLines = 1
+                                            )
+                                        }
+                                    }
+                                }
+
+                                Text(
+                                    text = letter.symbol,
+                                    fontSize = 48.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color(0xFF8B6418),
+                                    modifier = Modifier.padding(start = 8.dp)
+                                )
+                            }
                         }
                     }
+                }
 
-                    Text(
-                        text = letter.symbol,
-                        fontSize = 54.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = accentColor,
-                        modifier = Modifier.padding(start = 12.dp)
+                // Encabezado de Sección Dorado
+                item {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 8.dp, bottom = 2.dp, start = 4.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "MÓDULOS DE ESTUDIO",
+                            style = MaterialTheme.typography.labelLarge,
+                            fontWeight = FontWeight.Bold,
+                            color = goldPrimary,
+                            letterSpacing = 1.5.sp,
+                            fontSize = 13.sp
+                        )
+                    }
+                }
+
+                // Botones estilo iOS para abrir ventanas emergentes
+                items(moduleItems, key = { it.first.first }) { (info, iconAndBadge) ->
+                    val (key, title, subtitle) = info
+                    val (icon, badge) = iconAndBadge
+                    IosModuleActionTile(
+                        title = title,
+                        subtitle = subtitle,
+                        icon = icon,
+                        accentColor = goldPrimary,
+                        badgeText = badge,
+                        onClick = { activeModalSection = key }
                     )
                 }
             }
+        }
 
-            // Scrollable Tab Row
-            ScrollableTabRow(
-                selectedTabIndex = selectedTabIndex,
-                edgePadding = 16.dp,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                tabs.forEachIndexed { index, title ->
-                    Tab(
-                        selected = selectedTabIndex == index,
-                        onClick = { selectedTabIndex = index },
-                        text = {
-                            Text(
-                                text = title,
-                                style = MaterialTheme.typography.labelMedium,
-                                fontWeight = if (selectedTabIndex == index) FontWeight.Bold else FontWeight.Normal
-                            )
-                        }
-                    )
+        // Ventanas emergentes a pantalla completa estilo iOS
+        activeModalSection?.let { sectionKey ->
+            val modalTitle: String
+            val modalIcon: ImageVector
+            when (sectionKey) {
+                "info" -> {
+                    modalTitle = "Significado y Origen"
+                    modalIcon = Icons.Default.Info
+                }
+                "gematria" -> {
+                    modalTitle = "Gematría y Valores"
+                    modalIcon = Icons.Default.Numbers
+                }
+                "pardes" -> {
+                    modalTitle = "Exégesis Pardés"
+                    modalIcon = Icons.Default.AccountTree
+                }
+                "rabbinic" -> {
+                    modalTitle = "Comentarios Rabínicos"
+                    modalIcon = Icons.Default.MenuBook
+                }
+                "quotes" -> {
+                    modalTitle = "Citas Bíblicas"
+                    modalIcon = Icons.Default.AutoStories
+                }
+                "midrash" -> {
+                    modalTitle = "Midrash y Talmud"
+                    modalIcon = Icons.Default.HistoryEdu
+                }
+                "kabbalah" -> {
+                    modalTitle = "Kabbalah y Mística"
+                    modalIcon = Icons.Default.AutoAwesome
+                }
+                "curiosities" -> {
+                    modalTitle = "Curiosidades y Datos"
+                    modalIcon = Icons.Default.Lightbulb
+                }
+                "study" -> {
+                    modalTitle = "Modo Estudio Interactivo"
+                    modalIcon = Icons.Default.Psychology
+                }
+                else -> {
+                    modalTitle = "Estudio"
+                    modalIcon = Icons.Default.School
                 }
             }
 
-            // Tab Content
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(1f)
+            IosFullscreenModal(
+                title = modalTitle,
+                subtitle = "Letra ${letter.name} (${letter.symbol})",
+                icon = modalIcon,
+                accentColor = accentColor,
+                onDismiss = { activeModalSection = null }
             ) {
-                when (selectedTabIndex) {
-                    0 -> TabInfoGeneral(letter, accentColor)
-                    1 -> TabGematria(letter, accentColor)
-                    2 -> TabPardes(letter, accentColor)
-                    3 -> TabRabbinicComments(letter, accentColor)
-                    4 -> TabBiblicalQuotes(letter, accentColor)
-                    5 -> TabMidrashTalmud(letter, accentColor)
-                    6 -> TabKabbalah(letter, accentColor)
-                    7 -> TabCuriosities(letter, accentColor)
-                    8 -> StudyModeTabContent(
-                        topicId = "letter_${letter.id}",
-                        topicTitle = "Estudio sobre ${letter.name} (${letter.symbol})",
-                        category = "Alefato",
-                        viewModel = viewModel
-                    )
+                SelectionContainer {
+                    when (sectionKey) {
+                        "info" -> TabInfoGeneral(letter, accentColor)
+                        "gematria" -> TabGematria(letter, accentColor)
+                        "pardes" -> TabPardes(letter, accentColor)
+                        "rabbinic" -> TabRabbinicComments(letter, accentColor)
+                        "quotes" -> TabBiblicalQuotes(letter, accentColor)
+                        "midrash" -> TabMidrashTalmud(letter, accentColor)
+                        "kabbalah" -> TabKabbalah(letter, accentColor)
+                        "curiosities" -> TabCuriosities(letter, accentColor)
+                    }
                 }
             }
         }
@@ -205,6 +346,7 @@ fun LetterDetailScreen(
         )
     }
 }
+
 
 @Composable
 private fun TabInfoGeneral(letter: HebrewLetter, accentColor: Color) {
@@ -250,6 +392,9 @@ private fun TabInfoGeneral(letter: HebrewLetter, accentColor: Color) {
 
 @Composable
 private fun TabGematria(letter: HebrewLetter, accentColor: Color) {
+    val context = LocalContext.current
+    val clipboardManager = LocalClipboardManager.current
+
     LazyColumn(
         contentPadding = PaddingValues(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
@@ -285,7 +430,23 @@ private fun TabGematria(letter: HebrewLetter, accentColor: Color) {
                                 Text(text = word.significance, style = MaterialTheme.typography.labelSmall, color = accentColor)
                             }
                             Spacer(modifier = Modifier.width(8.dp))
-                            BadgeChip(label = "Val: ${word.gematriaValue}", color = accentColor)
+                            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                                BadgeChip(label = "Val: ${word.gematriaValue}", color = accentColor)
+                                IconButton(
+                                    onClick = {
+                                        clipboardManager.setText(AnnotatedString("${word.hebrew} (${word.transliteration}) = ${word.gematriaValue} — ${word.translation}. ${word.significance}"))
+                                        Toast.makeText(context, "Palabra copiada", Toast.LENGTH_SHORT).show()
+                                    },
+                                    modifier = Modifier.size(28.dp)
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.ContentCopy,
+                                        contentDescription = "Copiar palabra",
+                                        tint = accentColor,
+                                        modifier = Modifier.size(16.dp)
+                                    )
+                                }
+                            }
                         }
                     }
                 }

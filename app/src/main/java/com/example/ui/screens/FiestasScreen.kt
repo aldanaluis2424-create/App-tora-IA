@@ -1,6 +1,7 @@
 package com.example.ui.screens
 
 import androidx.compose.animation.*
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -10,7 +11,6 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.Celebration
 import androidx.compose.material.icons.filled.Search
@@ -23,11 +23,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import coil.compose.AsyncImage
 import com.example.R
 import com.example.data.model.JewishFeast
 import com.example.ui.viewmodel.TorahViewModel
@@ -122,131 +122,169 @@ fun FiestasScreen(
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background),
-        contentPadding = PaddingValues(16.dp),
+            .background(Color(0xFFFAF7F0)),
+        contentPadding = PaddingValues(top = 12.dp, bottom = 90.dp, start = 14.dp, end = 14.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-            // Immersive Header Hero
-            item {
-                Card(
+        // Immersive Header Hero
+        item {
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(22.dp),
+                border = BorderStroke(1.dp, Color(0xFFC79E3E)),
+                elevation = CardDefaults.cardElevation(defaultElevation = 5.dp)
+            ) {
+                Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 8.dp),
-                    shape = RoundedCornerShape(24.dp),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+                        .height(160.dp)
                 ) {
+                    Image(
+                        painter = painterResource(id = R.drawable.img_feasts_banner_1785860004945),
+                        contentDescription = null,
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier.fillMaxSize()
+                    )
                     Box(
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .height(160.dp)
-                    ) {
-                        Image(
-                            painter = painterResource(id = R.drawable.img_feasts_banner_1785860004945),
-                            contentDescription = null,
-                            contentScale = ContentScale.Crop,
-                            modifier = Modifier.fillMaxSize()
-                        )
-                        Box(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .background(
-                                    Brush.verticalGradient(
-                                        colors = listOf(
-                                            Color.Black.copy(alpha = 0.3f),
-                                            Color.Black.copy(alpha = 0.85f)
-                                        )
+                            .fillMaxSize()
+                            .background(
+                                Brush.verticalGradient(
+                                    colors = listOf(
+                                        Color.Black.copy(alpha = 0.25f),
+                                        Color(0xEE160E04)
                                     )
                                 )
+                            )
+                    )
+                    Column(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(16.dp),
+                        verticalArrangement = Arrangement.Bottom
+                    ) {
+                        Text(
+                            text = "MOADIM • TIEMPOS SEÑALADOS",
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFFFFD700),
+                            letterSpacing = 1.5.sp
                         )
-                        Column(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .padding(16.dp),
-                            verticalArrangement = Arrangement.Bottom
-                        ) {
-                            Text(
-                                text = "MOADIM • TIEMPOS SEÑALADOS",
-                                fontSize = 11.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = Color(0xFFFFD700),
-                                letterSpacing = 1.5.sp
-                            )
-                            Text(
-                                text = "Las Santas Convocaciones de la Torá",
-                                fontSize = 20.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = Color.White
-                            )
-                            Text(
-                                text = "Ciclos del calendario bíblico, historia redentora y su profundo significado espiritual.",
-                                fontSize = 12.sp,
-                                color = Color.White.copy(alpha = 0.85f),
-                                maxLines = 2
-                            )
-                        }
-                    }
-                }
-            }
-
-            // Search Bar
-            item {
-                OutlinedTextField(
-                    value = searchQuery,
-                    onValueChange = { searchQuery = it },
-                    placeholder = { Text("Buscar fiesta, fecha o término...") },
-                    leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
-                    singleLine = true,
-                    shape = RoundedCornerShape(16.dp),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp)
-                )
-            }
-
-            // Category Filter Chips
-            item {
-                LazyRow(
-                    contentPadding = PaddingValues(horizontal = 16.dp),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    items(categories) { cat ->
-                        FilterChip(
-                            selected = selectedCategory == cat,
-                            onClick = { selectedCategory = cat },
-                            label = { Text(cat, fontSize = 12.sp, fontWeight = FontWeight.SemiBold) },
-                            shape = RoundedCornerShape(12.dp)
+                        Text(
+                            text = "Las Santas Convocaciones de la Torá",
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White,
+                            fontFamily = FontFamily.Serif
+                        )
+                        Text(
+                            text = "Ciclos del calendario bíblico, historia redentora y su profundo significado espiritual.",
+                            fontSize = 12.sp,
+                            color = Color.White.copy(alpha = 0.85f),
+                            maxLines = 2
                         )
                     }
                 }
             }
+        }
 
-            // Feasts Count Header
-            item {
+        // Search Bar estilo Pergamino
+        item {
+            Surface(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(18.dp),
+                color = Color(0xFFF1EAE0),
+                border = BorderStroke(1.dp, Color(0xFFDCC8A0)),
+                shadowElevation = 2.dp
+            ) {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 20.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
+                        .padding(horizontal = 14.dp, vertical = 4.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(
-                        text = "${filteredFeasts.size} Festividades encontradas",
-                        style = MaterialTheme.typography.titleSmall,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    Icon(
+                        imageVector = Icons.Default.Search,
+                        contentDescription = "Buscar",
+                        tint = Color(0xFF9E721D),
+                        modifier = Modifier.size(20.dp)
+                    )
+                    Spacer(modifier = Modifier.width(10.dp))
+                    TextField(
+                        value = searchQuery,
+                        onValueChange = { searchQuery = it },
+                        placeholder = {
+                            Text(
+                                text = "Buscar fiesta, fecha o término...",
+                                fontSize = 13.sp,
+                                color = Color(0xFF8A7F6E)
+                            )
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = TextFieldDefaults.colors(
+                            focusedContainerColor = Color.Transparent,
+                            unfocusedContainerColor = Color.Transparent,
+                            focusedIndicatorColor = Color.Transparent,
+                            unfocusedIndicatorColor = Color.Transparent
+                        ),
+                        singleLine = true
                     )
                 }
             }
+        }
 
-            // Feasts List
-            items(filteredFeasts, key = { it.id }) { feast ->
-                ImmersiveFeastCard(
-                    feast = feast,
-                    onClick = { onSelectFeast(feast.id) },
-                    modifier = Modifier.padding(horizontal = 16.dp)
+        // Category Filter Chips
+        item {
+            LazyRow(
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                items(categories) { cat ->
+                    val isSelected = selectedCategory == cat
+                    Surface(
+                        shape = RoundedCornerShape(16.dp),
+                        color = if (isSelected) Color(0xFF9E721D) else Color(0xFFEFE8DA),
+                        border = BorderStroke(1.dp, if (isSelected) Color(0xFFC79E3E) else Color(0xFFD8C8A8)),
+                        modifier = Modifier.clickable { selectedCategory = cat }
+                    ) {
+                        Text(
+                            text = cat,
+                            fontSize = 12.sp,
+                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                            color = if (isSelected) Color.White else Color(0xFF3B2E1C),
+                            modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp)
+                        )
+                    }
+                }
+            }
+        }
+
+        // Feasts Count Header
+        item {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 4.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "${filteredFeasts.size} Festividades encontradas",
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFF6B5D45),
+                    fontFamily = FontFamily.Serif
                 )
             }
         }
+
+        // Feasts List
+        items(filteredFeasts, key = { it.id }) { feast ->
+            ImmersiveFeastCard(
+                feast = feast,
+                onClick = { onSelectFeast(feast.id) }
+            )
+        }
+    }
 }
 
 @Composable
@@ -256,15 +294,15 @@ private fun ImmersiveFeastCard(
     modifier: Modifier = Modifier
 ) {
     val accentColor = parseColor(feast.themeColorHex)
-    val imageUrl = remember(feast.id) { getFeastImageUrl(feast.id) }
 
     Card(
         modifier = modifier
             .fillMaxWidth()
             .testTag("feast_card_${feast.id}")
             .clickable { onClick() },
-        shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        shape = RoundedCornerShape(22.dp),
+        colors = CardDefaults.cardColors(containerColor = Color(0xFFFFFDF9)),
+        border = BorderStroke(1.dp, Color(0xFFE8DCCB)),
         elevation = CardDefaults.cardElevation(defaultElevation = 3.dp)
     ) {
         Column {
@@ -272,7 +310,7 @@ private fun ImmersiveFeastCard(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(140.dp)
+                    .height(138.dp)
             ) {
                 Image(
                     painter = painterResource(id = getFeastDrawableRes(feast.id)),
@@ -287,8 +325,8 @@ private fun ImmersiveFeastCard(
                         .background(
                             Brush.verticalGradient(
                                 colors = listOf(
-                                    Color.Black.copy(alpha = 0.25f),
-                                    Color.Black.copy(alpha = 0.85f)
+                                    Color.Transparent,
+                                    Color.Black.copy(alpha = 0.65f)
                                 )
                             )
                         )
@@ -308,8 +346,9 @@ private fun ImmersiveFeastCard(
                         verticalAlignment = Alignment.Top
                     ) {
                         Surface(
-                            shape = RoundedCornerShape(8.dp),
+                            shape = RoundedCornerShape(12.dp),
                             color = accentColor.copy(alpha = 0.9f),
+                            border = BorderStroke(1.dp, Color(0xFFE5C884).copy(alpha = 0.6f)),
                             modifier = Modifier.weight(1f, fill = false)
                         ) {
                             Text(
@@ -340,6 +379,7 @@ private fun ImmersiveFeastCard(
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color.White,
+                        fontFamily = FontFamily.Serif,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
@@ -360,8 +400,9 @@ private fun ImmersiveFeastCard(
                 ) {
                     // Date Chip
                     Surface(
-                        shape = RoundedCornerShape(8.dp),
-                        color = accentColor.copy(alpha = 0.12f),
+                        shape = RoundedCornerShape(10.dp),
+                        color = Color(0xFFF1EAE0),
+                        border = BorderStroke(1.dp, Color(0xFFDCC8A0)),
                         modifier = Modifier.weight(1f, fill = false)
                     ) {
                         Row(
@@ -372,14 +413,14 @@ private fun ImmersiveFeastCard(
                             Icon(
                                 imageVector = Icons.Default.Celebration,
                                 contentDescription = null,
-                                tint = accentColor,
+                                tint = Color(0xFF9E721D),
                                 modifier = Modifier.size(14.dp)
                             )
                             Text(
                                 text = feast.hebrewDate,
                                 fontSize = 12.sp,
                                 fontWeight = FontWeight.Bold,
-                                color = accentColor,
+                                color = Color(0xFF382705),
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis
                             )
@@ -391,21 +432,21 @@ private fun ImmersiveFeastCard(
                         text = "📅 ${feast.gregorianApprox}",
                         fontSize = 11.sp,
                         fontWeight = FontWeight.Medium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = Color(0xFF7A6F5D)
                     )
                 }
 
                 // Short Description / Excerpt
                 Text(
                     text = feast.history,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f),
+                    fontSize = 12.sp,
+                    color = Color(0xFF5A4F3E),
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
                     lineHeight = 16.sp
                 )
 
-                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f))
+                HorizontalDivider(color = Color(0xFFE8DCCB))
 
                 // Bottom CTA Link
                 Row(
@@ -416,13 +457,13 @@ private fun ImmersiveFeastCard(
                     Text(
                         text = "Explorar historia, mitzvot y profecía",
                         fontSize = 12.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        color = accentColor
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF9E721D)
                     )
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowForward,
                         contentDescription = "Ver detalle",
-                        tint = accentColor,
+                        tint = Color(0xFF9E721D),
                         modifier = Modifier.size(16.dp)
                     )
                 }
@@ -430,4 +471,5 @@ private fun ImmersiveFeastCard(
         }
     }
 }
+
 
