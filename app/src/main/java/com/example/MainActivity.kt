@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
@@ -58,6 +59,20 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun TorahAppNavigation(viewModel: TorahViewModel) {
     val navController = rememberNavController()
+    val currentUser by viewModel.currentUser.collectAsState()
+
+    // Si el usuario no tiene sesión activa, redirigir inmediatamente a Login para proteger todos los módulos
+    LaunchedEffect(currentUser) {
+        if (currentUser == null) {
+            val currentRoute = navController.currentDestination?.route
+            if (currentRoute != null && currentRoute != Screen.Login.route && currentRoute != Screen.Register.route) {
+                navController.navigate(Screen.Login.route) {
+                    popUpTo(0) { inclusive = true }
+                    launchSingleTop = true
+                }
+            }
+        }
+    }
 
     AppNavigationWrapper(
         navController = navController,
@@ -65,7 +80,7 @@ fun TorahAppNavigation(viewModel: TorahViewModel) {
     ) { paddingValues ->
         NavHost(
             navController = navController,
-            startDestination = Screen.Home.route,
+            startDestination = if (viewModel.isUserAuthenticated()) Screen.Home.route else Screen.Login.route,
             modifier = Modifier.padding(paddingValues)
         ) {
             composable(Screen.Home.route) {
@@ -122,7 +137,54 @@ fun TorahAppNavigation(viewModel: TorahViewModel) {
             composable(Screen.Translator.route) {
                 TraductorScreen(
                     viewModel = viewModel,
+                    onNavigateToLogin = { navController.navigate(Screen.Login.route) },
+                    onNavigateToRegister = { navController.navigate(Screen.Register.route) },
                     onNavigateBack = { navController.popBackStack() }
+                )
+            }
+
+            composable(Screen.Login.route) {
+                LoginScreen(
+                    viewModel = viewModel,
+                    canNavigateBack = navController.previousBackStackEntry != null && currentUser != null,
+                    onNavigateToRegister = {
+                        navController.navigate(Screen.Register.route)
+                    },
+                    onLoginSuccess = {
+                        navController.navigate(Screen.Home.route) {
+                            popUpTo(Screen.Login.route) { inclusive = true }
+                        }
+                    },
+                    onNavigateBack = {
+                        if (navController.previousBackStackEntry != null) {
+                            navController.popBackStack()
+                        }
+                    }
+                )
+            }
+
+            composable(Screen.Register.route) {
+                RegisterScreen(
+                    viewModel = viewModel,
+                    onNavigateToLogin = {
+                        navController.navigate(Screen.Login.route) {
+                            popUpTo(Screen.Register.route) { inclusive = true }
+                        }
+                    },
+                    onRegisterSuccess = {
+                        navController.navigate(Screen.Home.route) {
+                            popUpTo(Screen.Register.route) { inclusive = true }
+                        }
+                    },
+                    onNavigateBack = {
+                        if (navController.previousBackStackEntry != null) {
+                            navController.popBackStack()
+                        } else {
+                            navController.navigate(Screen.Login.route) {
+                                popUpTo(0) { inclusive = true }
+                            }
+                        }
+                    }
                 )
             }
 
