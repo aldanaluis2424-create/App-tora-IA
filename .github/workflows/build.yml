@@ -18,13 +18,12 @@ jobs:
       with:
         java-version: '17'
         distribution: 'temurin'
-        cache: gradle
 
-    - name: Otorgar permisos de ejecución a gradlew
-      run: chmod +x gradlew
+    - name: Configurar e instalar Gradle
+      uses: gradle/actions/setup-gradle@v4
 
     - name: Compilar Android App Bundle (AAB)
-      run: ./gradlew bundleRelease
+      run: gradle bundleRelease
       env:
         GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
 
