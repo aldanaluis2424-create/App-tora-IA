@@ -23,7 +23,7 @@ jobs:
       uses: gradle/actions/setup-gradle@v4
 
     - name: Compilar Android App Bundle (AAB)
-      run: gradle bundleRelease
+      run: gradle :app:bundleRelease
       env:
         GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
 
