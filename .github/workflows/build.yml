@@ -2,7 +2,7 @@ name: Build Android Bundle Definitivo
 
 on:
   push:
-    branches: [ principal, main, master ]
+    branches: [ "principal", "main", "master", "aldanaluis2424-crear" ]
   workflow_dispatch:
 
 jobs:
@@ -10,94 +10,26 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Descargar código fuente
-        uses: actions/checkout@v4
+    - name: Descargar código fuente
+      uses: actions/checkout@v4
 
-      - name: Configurar Java 17
-        uses: actions/setup-java@v5
-        with:
-          java-version: '17'
-          distribution: 'temurin'
+    - name: Configurar Java 17
+      uses: actions/setup-java@v4
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+        cache: gradle
 
-      - name: Configurar Entorno Android SDK
-        uses: android-actions/setup-android@v3
+    - name: Otorgar permisos de ejecución a gradlew
+      run: chmod +x gradlew
 
-      - name: Instalar y Configurar Gradle 9.3.1
-        uses: gradle/actions/setup-gradle@v4
-        with:
-          gradle-version: '9.3.1'
+    - name: Compilar Android App Bundle (AAB)
+      run: ./gradlew bundleRelease
+      env:
+        GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
 
-      - name: Configurar gradle.properties para compatibilidad
-        run: |
-          echo "kotlin.compiler.suppressKotlinVersionCompatibilityCheck=true" >> gradle.properties
-          echo "android.suppressUnsupportedCompileSdk=true" >> gradle.properties
-
-      - name: Preparar Claves y Variables de Entorno
-        run: |
-          API_KEY="${{ secrets.GEMINI_API_KEY }}"
-          if [ -z "$API_KEY" ]; then
-            API_KEY="DUMMY_KEY_FOR_BUILD"
-          fi
-          
-          echo "sdk.dir=$ANDROID_HOME" > local.properties
-          echo "GEMINI_API_KEY=\"$API_KEY\"" >> local.properties
-          echo "GEMINI_API_KEY=\"$API_KEY\"" >> gradle.properties
-          echo "GEMINI_API_KEY=\"$API_KEY\"" > .env
-          echo "GEMINI_API_KEY=\"$API_KEY\"" > .env.example
-
-      - name: Limpiar atributo package obsoleto en AndroidManifest.xml
-        run: |
-          sed -i 's/package="[^"]*"//g' app/src/main/AndroidManifest.xml
-
-      - name: Generar google-services.json coincidiendo con com.ToraIA
-        run: |
-          if [ -n "${{ secrets.GOOGLE_SERVICES_JSON }}" ]; then
-            echo "${{ secrets.GOOGLE_SERVICES_JSON }}" > app/google-services.json
-          elif [ ! -f app/google-services.json ]; then
-            echo '{"project_info":{"project_number":"123456789012","project_id":"app-tora-ia","storage_bucket":"app-tora-ia.appspot.com"},"client":[{"client_info":{"mobilesdk_app_id":"1:123456789012:android:1234567890abcdef","android_client_info":{"package_name":"com.ToraIA"}},"api_key":[{"current_key":"AIzaSyDummyKeyForBuild123456789"}]}],"configuration_version":"1"}' > app/google-services.json
-          fi
-
-      - name: Preparar Keystore de Firma Único y Permanente
-        run: |
-          STORE_PASS="${{ secrets.KEYSTORE_PASSWORD }}"
-          ALIAS="${{ secrets.KEY_ALIAS }}"
-          KEY_PASS="${{ secrets.KEY_PASSWORD }}"
-          
-          if [ -z "$STORE_PASS" ]; then STORE_PASS="android"; fi
-          if [ -z "$ALIAS" ]; then ALIAS="my-key-alias"; fi
-          if [ -z "$KEY_PASS" ]; then KEY_PASS="android"; fi
-          
-          if [ -n "${{ secrets.KEYSTORE_BASE64 }}" ]; then
-            echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > "$GITHUB_WORKSPACE/my-upload-key.jks"
-          elif [ ! -f "$GITHUB_WORKSPACE/my-upload-key.jks" ]; then
-            keytool -genkeypair -alias "$ALIAS" -keyalg RSA -keysize 2048 -validity 10000 -keystore "$GITHUB_WORKSPACE/my-upload-key.jks" -storepass "$STORE_PASS" -keypass "$KEY_PASS" -dname "CN=Android,OU=Android,O=Android,L=Android,ST=Android,C=US"
-          fi
-          cp "$GITHUB_WORKSPACE/my-upload-key.jks" app/my-upload-key.jks
-          
-          echo "=== TU KEYSTORE BASE64 PARA GUARDAR EN GITHUB SECRETS ==="
-          base64 -w 0 "$GITHUB_WORKSPACE/my-upload-key.jks"
-          echo ""
-          echo "=========================================================="
-
-      - name: Compilar y Firmar AAB con versionCode e id dinámicos
-        env:
-          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD || 'android' }}
-          KEY_ALIAS: ${{ secrets.KEY_ALIAS || 'my-key-alias' }}
-          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD || 'android' }}
-        run: |
-          STORE_PATH="$GITHUB_WORKSPACE/my-upload-key.jks"
-          gradle bundleRelease \
-            -Pandroid.injected.application.id="com.ToraIA" \
-            -Pandroid.injected.version.code="${{ github.run_number }}" \
-            -Pandroid.injected.signing.store.file="$STORE_PATH" \
-            -Pandroid.injected.signing.store.password="${KEYSTORE_PASSWORD}" \
-            -Pandroid.injected.signing.key.alias="${KEY_ALIAS}" \
-            -Pandroid.injected.signing.key.password="${KEY_PASSWORD}" \
-            --stacktrace --console=plain
-
-      - name: Subir Archivo AAB a Artefactos
-        uses: actions/upload-artifact@v4
-        with:
-          name: app-release-aab
-          path: '**/build/outputs/bundle/release/*.aab'
-          retention-days: 7
+    - name: Subir Artifact AAB
+      uses: actions/upload-artifact@v4
+      with:
+        name: app-release
+        path: app/build/outputs/bundle/release/*.aab
