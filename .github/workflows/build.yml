@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Descargar código fuente
+    - name: Descargar codigo fuente
       uses: actions/checkout@v4
 
     - name: Configurar Java 17
@@ -19,11 +19,11 @@ jobs:
         java-version: '17'
         distribution: 'temurin'
 
-    - name: Configurar e instalar Gradle
+    - name: Configurar Gradle
       uses: gradle/actions/setup-gradle@v4
 
-    - - name: Compilar Android App Bundle (AAB)
-      run: gradle :app:bundleRelease --stacktrace --no-daemon -Dksp.incremental=false
+    - name: Compilar Android App Bundle (AAB)
+      run: gradle :app:bundleRelease --no-daemon -Dksp.incremental=false
       env:
         GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
 
