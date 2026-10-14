@@ -22,8 +22,8 @@ jobs:
     - name: Configurar e instalar Gradle
       uses: gradle/actions/setup-gradle@v4
 
-    - name: Compilar Android App Bundle (AAB)
-      run: gradle :app:bundleRelease --no-daemon -Dksp.incremental=false
+    - - name: Compilar Android App Bundle (AAB)
+      run: gradle :app:bundleRelease --stacktrace --no-daemon -Dksp.incremental=false
       env:
         GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
 
