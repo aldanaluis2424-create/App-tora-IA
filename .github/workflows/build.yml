@@ -19,9 +19,17 @@ jobs:
         java-version: '17'
         distribution: 'temurin'
 
-    - name: Crear keystore temporal para bypass de firma
+    - name: Generar Keystore para Bypass de Firma
       run: |
-        keytool -genkey -v -keystore my-upload-key.jks -keyalg RSA -keysize 2048 -validity 10000 -alias my-alias -storepass 123456 -keypass 123456 -dname "CN=Android, OU=Dev, O=App, L=City, S=State, C=US"
+        keytool -genkeypair -v \
+          -keystore my-upload-key.jks \
+          -alias my-alias \
+          -keyalg RSA \
+          -keysize 2048 \
+          -validity 10000 \
+          -storepass android \
+          -keypass android \
+          -dname "CN=Android, OU=Dev, O=App, L=City, S=State, C=US"
 
     - name: Configurar Gradle
       uses: gradle/actions/setup-gradle@v4
