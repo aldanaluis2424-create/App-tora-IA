@@ -25,7 +25,7 @@ jobs:
         gradle-version: '9.3.1'
 
     - name: Compilar Android App Bundle (AAB)
-      run: gradle :app:bundleRelease -x validateSigningRelease -x validateSigningDebug --stacktrace --no-daemon -Pksp.incremental=false -Dksp.incremental=false
+      run: gradle :app:bundleRelease -x :app:validateSigningRelease --stacktrace --no-daemon -Pksp.incremental=false -Dksp.incremental=false
       env:
         GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
 
