@@ -19,13 +19,17 @@ jobs:
         java-version: '17'
         distribution: 'temurin'
 
+    - name: Crear keystore temporal para bypass de firma
+      run: |
+        keytool -genkey -v -keystore my-upload-key.jks -keyalg RSA -keysize 2048 -validity 10000 -alias my-alias -storepass 123456 -keypass 123456 -dname "CN=Android, OU=Dev, O=App, L=City, S=State, C=US"
+
     - name: Configurar Gradle
       uses: gradle/actions/setup-gradle@v4
       with:
         gradle-version: '9.3.1'
 
     - name: Compilar Android App Bundle (AAB)
-      run: gradle :app:bundleRelease -x :app:validateSigningRelease --stacktrace --no-daemon -Pksp.incremental=false -Dksp.incremental=false
+      run: gradle :app:bundleRelease --stacktrace --no-daemon -Pksp.incremental=false -Dksp.incremental=false
       env:
         GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
 
