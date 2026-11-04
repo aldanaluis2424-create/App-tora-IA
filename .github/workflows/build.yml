@@ -19,26 +19,41 @@ jobs:
         java-version: '17'
         distribution: 'temurin'
 
-    - name: Crear keystore y establecer propiedades de firma
+    - name: Generar Keystore y Certificado PEM para Google Play
       run: |
         keytool -genkeypair -v \
-          -keystore app/my-upload-key.jks \
-          -alias my-alias \
+          -keystore nueva-clave-toraia.jks \
+          -alias toraia-key \
           -keyalg RSA \
           -keysize 2048 \
           -validity 10000 \
           -storepass 123456 \
           -keypass 123456 \
-          -dname "CN=Android, OU=Dev, O=App, L=City, S=State, C=US"
-        cp app/my-upload-key.jks my-upload-key.jks
+          -dname "CN=Luis Aldana, OU=Dev, O=ToraIA, L=Guatemala, S=Guatemala, C=GT"
+        
+        keytool -exportcert -rfc \
+          -keystore nueva-clave-toraia.jks \
+          -alias toraia-key \
+          -storepass 123456 \
+          -file upload_certificate.pem
+
+        cp nueva-clave-toraia.jks app/my-upload-key.jks
+        cp nueva-clave-toraia.jks my-upload-key.jks
 
     - name: Configurar Gradle
       uses: gradle/actions/setup-gradle@v4
       with:
         gradle-version: '9.3.1'
 
-    - name: Compilar Android App Bundle (AAB)
-      run: gradle :app:bundleRelease --stacktrace --no-daemon -Pksp.incremental=false -Dksp.incremental=false -Pandroid.injected.signing.store.file=$(pwd)/my-upload-key.jks -Pandroid.injected.signing.store.password=123456 -Pandroid.injected.signing.key.alias=my-alias -Pandroid.injected.signing.key.password=123456
+    - name: Compilar y Firmar Android App Bundle (AAB)
+      run: |
+        gradle :app:bundleRelease --stacktrace --no-daemon \
+          -Pksp.incremental=false \
+          -Dksp.incremental=false \
+          -Pandroid.injected.signing.store.file=$(pwd)/my-upload-key.jks \
+          -Pandroid.injected.signing.store.password=123456 \
+          -Pandroid.injected.signing.key.alias=toraia-key \
+          -Pandroid.injected.signing.key.password=123456
       env:
         GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
 
@@ -47,3 +62,9 @@ jobs:
       with:
         name: app-release
         path: app/build/outputs/bundle/**/*.aab
+
+    - name: Subir Certificado PEM para Google Play
+      uses: actions/upload-artifact@v4
+      with:
+        name: certificado-pem
+        path: upload_certificate.pem
