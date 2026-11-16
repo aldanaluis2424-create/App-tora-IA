@@ -68,3 +68,9 @@ jobs:
       with:
         name: certificado-pem
         path: upload_certificate.pem
+
+    - name: Subir Keystore JKS Definitivo
+      uses: actions/upload-artifact@v4
+      with:
+        name: keystore-definitivo
+        path: nueva-clave-toraia.jks
