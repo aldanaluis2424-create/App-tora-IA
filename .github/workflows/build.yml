@@ -33,7 +33,7 @@ jobs:
 
     - name: Compilar y Firmar Android App Bundle (AAB)
       run: |
-        gradle bundleRelease --stacktrace --no-daemon \
+        gradle :app:bundleRelease --stacktrace --no-daemon \
           -Pksp.incremental=false \
           -Dksp.incremental=false \
           -Pandroid.injected.signing.store.file=$(pwd)/my-upload-key.jks \
