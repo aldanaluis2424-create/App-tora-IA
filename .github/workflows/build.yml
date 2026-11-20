@@ -19,24 +19,10 @@ jobs:
         java-version: '17'
         distribution: 'temurin'
 
-    - name: Generar Keystore y Certificado PEM para Google Play
+    - name: Restaurar Keystore Fijo desde Secrets
       run: |
-        keytool -genkeypair -v \
-          -keystore nueva-clave-toraia.jks \
-          -alias toraia-key \
-          -keyalg RSA \
-          -keysize 2048 \
-          -validity 10000 \
-          -storepass 123456 \
-          -keypass 123456 \
-          -dname "CN=Luis Aldana, OU=Dev, O=ToraIA, L=Guatemala, S=Guatemala, C=GT"
-        
-        keytool -exportcert -rfc \
-          -keystore nueva-clave-toraia.jks \
-          -alias toraia-key \
-          -storepass 123456 \
-          -file upload_certificate.pem
-
+        echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > nueva-clave-toraia.jks
+        mkdir -p app
         cp nueva-clave-toraia.jks app/my-upload-key.jks
         cp nueva-clave-toraia.jks my-upload-key.jks
 
@@ -47,7 +33,7 @@ jobs:
 
     - name: Compilar y Firmar Android App Bundle (AAB)
       run: |
-        gradle :app:bundleRelease --stacktrace --no-daemon \
+        gradle bundleRelease --stacktrace --no-daemon \
           -Pksp.incremental=false \
           -Dksp.incremental=false \
           -Pandroid.injected.signing.store.file=$(pwd)/my-upload-key.jks \
@@ -61,16 +47,4 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: app-release
-        path: app/build/outputs/bundle/**/*.aab
-
-    - name: Subir Certificado PEM para Google Play
-      uses: actions/upload-artifact@v4
-      with:
-        name: certificado-pem
-        path: upload_certificate.pem
-
-    - name: Subir Keystore JKS Definitivo
-      uses: actions/upload-artifact@v4
-      with:
-        name: keystore-definitivo
-        path: nueva-clave-toraia.jks
+        path: "**/outputs/bundle/**/*.aab"
